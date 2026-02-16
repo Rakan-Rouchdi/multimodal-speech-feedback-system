@@ -1,0 +1,4 @@
+- Target sample rate 16kHz
+- Mono Conversion
+- Normalisation
+- Silence Trimming (top_db=20)
