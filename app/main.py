@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timezone
 from uuid import uuid4
+from app.audio.preprocessing import preprocess_audio
 
 def make_empty_result(variant: str) -> dict:
     return {
@@ -18,5 +19,10 @@ def make_empty_result(variant: str) -> dict:
     }
 
 if __name__ == "__main__":
-    result = make_empty_result("multimodal")
-    print(json.dumps(result, indent=2))
+    file_path = "data/harvard.wav"  # Put a short wav file here
+
+    waveform, sr, duration = preprocess_audio(file_path)
+
+    print("Sample Rate:", sr)
+    print("Duration (sec):", duration)
+    print("Waveform shape:", waveform.shape)
