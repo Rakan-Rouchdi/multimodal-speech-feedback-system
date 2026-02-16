@@ -1,0 +1,73 @@
+{
+    "meta": {
+      "session_id": "string",
+      "timestamp_utc": "ISO-8601 string",
+      "input_audio": {
+        "duration_sec": 0.0,
+        "sample_rate_hz": 0,
+        "source": "upload|recording"
+      },
+      "pipeline_variant": "speech_only|text_only|multimodal"
+    },
+    "scores": {
+      "confidence": 0,
+      "clarity": 0,
+      "engagement": 0,
+      "bands": {
+        "confidence": "Needs improvement|Developing|Strong|Excellent",
+        "clarity": "Needs improvement|Developing|Strong|Excellent",
+        "engagement": "Needs improvement|Developing|Strong|Excellent"
+      }
+    },
+    "speech_metrics": {
+      "speech_rate_wpm": 0.0,
+      "pause_count": 0,
+      "mean_pause_sec": 0.0,
+      "total_pause_sec": 0.0,
+      "energy_mean": 0.0,
+      "pitch_mean_hz": 0.0,
+      "pitch_std_hz": 0.0,
+      "emotion": {
+        "top_label": "string",
+        "distribution": {
+          "neutral": 0.0,
+          "happy": 0.0,
+          "sad": 0.0,
+          "angry": 0.0,
+          "fear": 0.0,
+          "disgust": 0.0,
+          "surprise": 0.0
+        }
+      }
+    },
+    "text_metrics": {
+      "transcript": "string",
+      "word_count": 0,
+      "filler_count": 0,
+      "filler_rate_per_100w": 0.0,
+      "repeat_rate": 0.0,
+      "readability_proxy": 0.0,
+      "sentiment": {
+        "polarity": -1.0,
+        "subjectivity": 0.0
+      }
+    },
+    "feedback": {
+      "summary": "string",
+      "bullets": ["string"],
+      "next_practice": ["string"]
+    },
+    "debug": {
+      "warnings": ["string"],
+      "latency_ms": {
+        "preprocess": 0,
+        "transcription": 0,
+        "speech_analysis": 0,
+        "text_analysis": 0,
+        "fusion": 0,
+        "feedback": 0,
+        "total": 0
+      }
+    }
+  }
+  
