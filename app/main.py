@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 from app.audio.preprocessing import preprocess_audio
 from app.transcription.whisper_transcribe import LocalWhisperTranscriber, word_count
+from app.text_analysis.metrics import compute_text_metrics
 
 def make_empty_result(variant: str) -> dict:
     return {
@@ -30,6 +31,12 @@ if __name__ == "__main__":
 
     transcriber = LocalWhisperTranscriber(model_size="small", device="cpu", compute_type="int8")
     result = transcriber.transcribe(file_path)
+
+    metrics = compute_text_metrics(result.transcript)
+    print("\nText metrics:")
+    for k, v in metrics.items():
+        if k != "transcript":
+            print(f"  {k}: {v}")
 
     print("\nDetected language:", result.language)
     print("Word count:", word_count(result.transcript))
