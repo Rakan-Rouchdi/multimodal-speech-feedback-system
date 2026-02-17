@@ -9,6 +9,7 @@ from app.speech_analysis.speech_rate import speech_rate_wpm
 from app.scoring.scoring_v1 import scoring_v1
 from app.output.result_builder import build_result
 from app.output.save_json import save_result_json
+from app.feedback.generator_v1 import generate_feedback_v1
 
 def make_empty_result(variant: str) -> dict:
     return {
@@ -72,6 +73,23 @@ if __name__ == "__main__":
     for k, v in score_out["subscores"].items():
         print(f"  {k}: {v}")
 
+    # Feedback (must happen BEFORE saving JSON)
+    feedback = generate_feedback_v1(
+        scores=score_out["scores"],
+        speech=speech,
+        text=metrics,
+        subscores=score_out["subscores"],
+    )
+
+    print("\nFeedback summary:", feedback["summary"])
+    print("Feedback bullets:")
+    for b in feedback["bullets"]:
+        print(" -", b)
+    print("Next practice:")
+    for p in feedback["next_practice"]:
+        print(" -", p)
+
+    # Build + save JSON (includes feedback)
     result_json = build_result(
         variant="multimodal",
         source="upload",
@@ -80,9 +98,8 @@ if __name__ == "__main__":
         scores_block=score_out["scores"],
         speech_metrics=speech,
         text_metrics=metrics,
-        feedback={"summary": "", "bullets": [], "next_practice": []},
+        feedback=feedback,
     )
 
     saved_path = save_result_json(result_json, outputs_dir="outputs")
     print("\nSaved result JSON to:", saved_path)
-
