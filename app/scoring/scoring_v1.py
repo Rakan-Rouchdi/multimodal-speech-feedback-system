@@ -46,7 +46,7 @@ def scoring_v1(speech: Dict, text: Dict) -> Dict:
     """
 
     # --- Subscores (0–100) ---
-    wpm = float(speech.get("speech_rate_wpm", 0.0))
+    wpm = float(speech.get("speech_rate_wpm" or 0.0))
     filler = float(text.get("filler_rate_per_100w", 0.0))
     repeat = float(text.get("repeat_rate", 0.0))
     readability = float(text.get("readability_proxy", 0.0))
