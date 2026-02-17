@@ -5,6 +5,8 @@ from app.audio.preprocessing import preprocess_audio
 from app.transcription.whisper_transcribe import LocalWhisperTranscriber, word_count
 from app.text_analysis.metrics import compute_text_metrics
 from app.speech_analysis.metrics import compute_speech_metrics
+from app.speech_analysis.speech_rate import speech_rate_wpm
+from app.scoring.scoring_v1 import scoring_v1
 
 def make_empty_result(variant: str) -> dict:
     return {
@@ -30,11 +32,13 @@ if __name__ == "__main__":
     print("Duration (sec):", duration)
     print("Waveform shape:", waveform.shape)
 
+    # Speech metrics (audio-only)
     speech = compute_speech_metrics(waveform, sr)
     print("\nSpeech metrics:")
     for k, v in speech.items():
         print(f"  {k}: {v}")
 
+    # Transcription
     transcriber = LocalWhisperTranscriber(model_size="base", device="cpu", compute_type="int8")
     result = transcriber.transcribe(file_path)
 
@@ -42,8 +46,26 @@ if __name__ == "__main__":
     print("Word count:", word_count(result.transcript))
     print("Transcript:\n", result.transcript)
 
+    # Text metrics (transcript-only)
     metrics = compute_text_metrics(result.transcript)
     print("\nText metrics:")
     for k, v in metrics.items():
         if k != "transcript":
             print(f"  {k}: {v}")
+
+    # Speech rate (WPM) + scoring
+    wpm = speech_rate_wpm(word_count(result.transcript), duration)
+    speech["speech_rate_wpm"] = wpm
+    print(f"\nSpeech rate (WPM): {wpm:.2f}")
+
+    score_out = scoring_v1(speech=speech, text=metrics)
+
+    print("\nHeadline scores:")
+    for k, v in score_out["scores"].items():
+        if k != "bands":
+            print(f"  {k}: {v}")
+    print("Bands:", score_out["scores"]["bands"])
+
+    print("\nSubscores:")
+    for k, v in score_out["subscores"].items():
+        print(f"  {k}: {v}")
