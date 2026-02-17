@@ -7,6 +7,8 @@ from app.text_analysis.metrics import compute_text_metrics
 from app.speech_analysis.metrics import compute_speech_metrics
 from app.speech_analysis.speech_rate import speech_rate_wpm
 from app.scoring.scoring_v1 import scoring_v1
+from app.output.result_builder import build_result
+from app.output.save_json import save_result_json
 
 def make_empty_result(variant: str) -> dict:
     return {
@@ -69,3 +71,18 @@ if __name__ == "__main__":
     print("\nSubscores:")
     for k, v in score_out["subscores"].items():
         print(f"  {k}: {v}")
+
+    result_json = build_result(
+        variant="multimodal",
+        source="upload",
+        duration_sec=duration,
+        sample_rate_hz=sr,
+        scores_block=score_out["scores"],
+        speech_metrics=speech,
+        text_metrics=metrics,
+        feedback={"summary": "", "bullets": [], "next_practice": []},
+    )
+
+    saved_path = save_result_json(result_json, outputs_dir="outputs")
+    print("\nSaved result JSON to:", saved_path)
+
