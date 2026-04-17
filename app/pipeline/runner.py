@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Dict, Optional
+from pathlib import Path
+from typing import Dict, Optional, Tuple
 
 from app.audio.preprocessing import preprocess_audio
 from app.transcription.whisper_transcribe import LocalWhisperTranscriber, word_count
@@ -11,6 +12,27 @@ from app.scoring.scoring_v1 import scoring_v1
 from app.feedback.generator_v1 import generate_feedback_v1
 from app.output.result_builder import build_result
 from app.utils.timing import Timer
+
+
+_TRANSCRIBERS: Dict[Tuple[str, str, str], LocalWhisperTranscriber] = {}
+
+
+def get_transcriber(
+    model_size: str = "small",
+    device: str = "cpu",
+    compute_type: str = "int8",
+) -> LocalWhisperTranscriber:
+    """
+    Cache the transcriber so the Whisper model is not reloaded for every file.
+    """
+    key = (model_size, device, compute_type)
+    if key not in _TRANSCRIBERS:
+        _TRANSCRIBERS[key] = LocalWhisperTranscriber(
+            model_size=model_size,
+            device=device,
+            compute_type=compute_type,
+        )
+    return _TRANSCRIBERS[key]
 
 
 def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
@@ -25,6 +47,7 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
     if variant not in ("speech_only", "text_only", "multimodal"):
         raise ValueError("variant must be one of: speech_only, text_only, multimodal")
 
+    session_id = Path(file_path).stem
     timer = Timer()
 
     # --- Preprocess ---
@@ -43,7 +66,9 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
     wc = 0
 
     if variant in ("text_only", "multimodal"):
-        transcriber = LocalWhisperTranscriber(model_size="base", device="cpu", compute_type="int8")
+        # small is a better balance for your dissertation than base
+        transcriber = get_transcriber(model_size="small", device="cpu", compute_type="int8")
+
         with timer.track("transcription"):
             result = transcriber.transcribe(file_path)
 
@@ -53,16 +78,36 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
         with timer.track("text_analysis"):
             text_metrics = compute_text_metrics(transcript)
 
-    # --- Speech rate (WPM) ---
-    # Only compute WPM when we have transcript word count.
-    if speech_metrics is not None:
-        if wc > 0:
-            speech_metrics["speech_rate_wpm"] = speech_rate_wpm(wc, duration)
-        else:
-            speech_metrics["speech_rate_wpm"] = 0.0
+    # --- WPM ---
+    # Compute whenever transcript exists, even for text_only
+    wpm_value: Optional[float] = None
+    if wc > 0:
+        wpm_value = speech_rate_wpm(wc, duration)
 
-    # --- Safe defaults for scoring (so scoring_v1 can run in any variant) ---
-    safe_speech = speech_metrics or {
+    # Add derived pause features if speech metrics exist
+    if speech_metrics is not None:
+        speech_metrics["speech_rate_wpm"] = wpm_value if wpm_value is not None else 0.0
+
+        pause_count = float(speech_metrics.get("pause_count", 0))
+        total_pause_sec = float(speech_metrics.get("total_pause_sec", 0.0))
+
+        speech_metrics["pause_rate_per_min"] = (pause_count / duration) * 60.0 if duration > 0 else 0.0
+        speech_metrics["pause_ratio"] = (total_pause_sec / duration) if duration > 0 else 0.0
+
+    # --- Scoring inputs ---
+    # "available" flags let the scorer know whether a modality truly exists
+    score_speech = dict(speech_metrics or {})
+    score_speech["available"] = speech_metrics is not None
+
+    # even text_only can provide WPM from transcript + duration
+    if wpm_value is not None:
+        score_speech["speech_rate_wpm"] = wpm_value
+
+    score_text = dict(text_metrics or {})
+    score_text["available"] = text_metrics is not None
+
+    # --- Safe defaults for result / feedback only ---
+    safe_speech = dict(speech_metrics or {
         "energy_mean": 0.0,
         "pause_count": 0,
         "mean_pause_sec": 0.0,
@@ -70,19 +115,24 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
         "pitch_mean_hz": 0.0,
         "pitch_std_hz": 0.0,
         "speech_rate_wpm": 0.0,
-    }
-    safe_text = text_metrics or {
+        "pause_rate_per_min": 0.0,
+        "pause_ratio": 0.0,
+    })
+    if wpm_value is not None:
+        safe_speech["speech_rate_wpm"] = wpm_value
+
+    safe_text = dict(text_metrics or {
         "transcript": transcript,
         "word_count": wc,
         "filler_count": 0,
         "filler_rate_per_100w": 0.0,
         "repeat_rate": 0.0,
         "readability_proxy": 0.0,
-    }
+    })
 
     # --- Scoring / fusion ---
     with timer.track("fusion"):
-        score_out = scoring_v1(speech=safe_speech, text=safe_text)
+        score_out = scoring_v1(speech=score_speech, text=score_text)
 
     # --- Feedback ---
     with timer.track("feedback"):
@@ -105,15 +155,21 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
         "total": timer.ms.get("total", 0.0),
     }
 
-    # --- Build final result (speech_metrics/text_metrics are None when not computed) ---
-    return build_result(
+    # --- Build final result ---
+    result = build_result(
         variant=variant,
         source="upload",
         duration_sec=duration,
         sample_rate_hz=sr,
         scores_block=score_out["scores"],
-        speech_metrics=speech_metrics,
-        text_metrics=text_metrics,
+        speech_metrics=safe_speech if variant in ("speech_only", "multimodal") else None,
+        text_metrics=safe_text if variant in ("text_only", "multimodal") else None,
         feedback=feedback,
         latency_ms=latency_ms,
     )
+
+    result["meta"]["session_id"] = session_id
+    result["meta"]["input_file"] = str(file_path)
+    result["meta"]["pipeline_variant"] = variant
+
+    return result
