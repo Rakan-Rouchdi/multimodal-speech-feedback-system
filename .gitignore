@@ -12,11 +12,27 @@ __pycache__/
 outputs/
 data/
 
-# Model files
+# Model weight files (large binary checkpoints — ignore unless explicitly needed)
 *.pt
 *.pth
-*.h5
 *.ckpt
+# NOTE: *.h5 is NOT blanket-ignored here because best_model.h5 must be tracked.
+# To avoid committing other .h5 files, only ignore specific paths if needed.
 
 # Logs
 *.log
+
+# VoiceModel — training artifacts (large, not needed at runtime)
+app/VoiceModel/venv/
+app/VoiceModel/Audio/
+app/VoiceModel/.ipynb_checkpoints/
+
+# CrisperWhisper — raw recordings (large WAV files) and original repo clone
+app/CrisperWhisper/recordings/
+app/CrisperWhisper/repo/
+
+# Generated transcription cache (populated at runtime, do not commit)
+app/transcription/transcription_cache.json
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/

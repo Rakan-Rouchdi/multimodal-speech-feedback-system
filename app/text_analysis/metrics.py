@@ -1,10 +1,11 @@
 import re
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from app.contracts.constants import FILLER_WORDS
+from app.contracts.constants import DISFLUENCY_MARKERS, FILLER_WORDS
 
 
 _WORD_RE = re.compile(r"[a-zA-Z0-9']+")
+_BRACKET_TOKEN_RE = re.compile(r"\[([A-Z]+)\]")
 _CLAUSE_SPLIT_RE = re.compile(r"[.!?,;:]+|\n+")
 
 
@@ -20,11 +21,22 @@ def count_words(text: str) -> int:
     return len(tokens(text))
 
 
+def count_disfluencies(text: str) -> int:
+    """
+    Count CrisperWhisper bracket disfluency markers like [UH], [UM].
+    These are explicit speech disfluencies detected by the model.
+    """
+    matches = _BRACKET_TOKEN_RE.findall(text)
+    markers_upper = {m.strip("[]") for m in DISFLUENCY_MARKERS}
+    return sum(1 for m in matches if m in markers_upper)
+
+
 def count_fillers(text: str) -> int:
     """
     Counts filler occurrences.
     Handles both single-word fillers ("um") and multi-word fillers ("you know").
     Uses word-boundary matching to avoid counting inside other words.
+    Also counts CrisperWhisper disfluency markers ([UH], [UM]).
     """
     t = normalise_text(text)
 
@@ -34,14 +46,17 @@ def count_fillers(text: str) -> int:
         matches = re.findall(pattern, t)
         total += len(matches)
 
+    # Also count bracket disfluency markers from CrisperWhisper
+    total += count_disfluencies(text)
+
     return total
 
 
-def filler_rate_per_100w(text: str) -> float:
-    wc = count_words(text)
-    if wc == 0:
+def filler_rate_per_100w(transcript: str, clean_word_count: int) -> float:
+    if clean_word_count == 0:
         return 0.0
-    return (count_fillers(text) / wc) * 100.0
+    fc = count_fillers(transcript)  # raw transcript for [UH]/[UM] detection
+    return (fc / clean_word_count) * 100.0
 
 
 def repetition_rate(text: str) -> float:
@@ -141,14 +156,22 @@ def readability_proxy(text: str) -> float:
     )
 
 
-def compute_text_metrics(transcript: str) -> Dict:
-    wc = count_words(transcript)
-    fc = count_fillers(transcript)
+def compute_text_metrics(transcript: str, clean_text: Optional[str] = None) -> Dict:
+    if clean_text is None:
+        clean_text = transcript  # fallback, will be broken but consistent
+    
+    wc_raw = count_words(transcript)
+    wc_clean = count_words(clean_text)
+    fc = count_fillers(transcript)  # raw for disfluency detection
+    dc = count_disfluencies(transcript)  # raw
+    
     return {
         "transcript": transcript,
-        "word_count": wc,
+        "raw_word_count": wc_raw,
+        "clean_word_count": wc_clean,
         "filler_count": fc,
-        "filler_rate_per_100w": filler_rate_per_100w(transcript),
-        "repeat_rate": repetition_rate(transcript),
-        "readability_proxy": readability_proxy(transcript),
+        "disfluency_count": dc,
+        "filler_rate_per_100w": filler_rate_per_100w(transcript, wc_clean),
+        "repeat_rate": repetition_rate(clean_text),
+        "readability_proxy": readability_proxy(clean_text),
     }

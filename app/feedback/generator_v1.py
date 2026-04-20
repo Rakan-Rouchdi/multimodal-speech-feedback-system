@@ -20,6 +20,14 @@ def generate_feedback_v1(scores: Dict, speech: Dict, text: Dict, subscores: Dict
     engagement = float(scores.get("engagement", 0.0))
     bands = scores.get("bands", {})
 
+    # Emotion data (may be absent for text_only or if emotion analysis failed)
+    emotion_data = speech.get("emotion")
+    emotion_label: str = (
+        emotion_data.get("top_label", "")
+        if isinstance(emotion_data, dict)
+        else ""
+    )
+
     # Key metrics
     wpm = float(speech.get("speech_rate_wpm", 0.0))
     filler_rate = float(text.get("filler_rate_per_100w", 0.0))
@@ -86,6 +94,25 @@ def generate_feedback_v1(scores: Dict, speech: Dict, text: Dict, subscores: Dict
         0 < readability < 60,
         "Your sentences are long. Break ideas into shorter sentences for clearer delivery."
     )
+
+    # Emotion-aware feedback (only when emotion data is available)
+    if emotion_label in ("fearful", "sad"):
+        bullets.append(
+            "Your voice sounds nervous or downbeat. Try steady diaphragmatic breathing before you speak "
+            "and remind yourself of your key message — composure comes through in your tone."
+        )
+    elif emotion_label == "angry":
+        bullets.append(
+            "Your delivery sounds intense. A measured, calm tone often reads as more confident and authoritative."
+        )
+    elif emotion_label in ("happy", "surprised"):
+        bullets.append(
+            "Your delivery sounds enthusiastic — great energy for keeping your audience engaged!"
+        )
+    elif emotion_label in ("calm", "neutral"):
+        bullets.append(
+            "Your delivery sounds composed and professional — a strong foundation for confident communication."
+        )
 
     # If strong across the board, still give value
     if not bullets:

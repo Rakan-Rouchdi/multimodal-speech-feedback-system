@@ -1,41 +1,37 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 from app.audio.preprocessing import preprocess_audio
-from app.transcription.whisper_transcribe import LocalWhisperTranscriber, word_count
+from app.transcription.whisper_transcribe import word_count
+from app.transcription.crisper_whisper import CrisperWhisperTranscriber
+from app.transcription.cache import get_or_transcribe
 from app.text_analysis.metrics import compute_text_metrics
 from app.speech_analysis.metrics import compute_speech_metrics
 from app.speech_analysis.speech_rate import speech_rate_wpm
 from app.scoring.scoring_v1 import scoring_v1
 from app.feedback.generator_v1 import generate_feedback_v1
 from app.output.result_builder import build_result
+from app.emotion.predictor import predict_emotion
 from app.utils.timing import Timer
 
 
-_TRANSCRIBERS: Dict[Tuple[str, str, str], LocalWhisperTranscriber] = {}
+_TRANSCRIBER: Optional[CrisperWhisperTranscriber] = None
 
 
-def get_transcriber(
-    model_size: str = "small",
-    device: str = "cpu",
-    compute_type: str = "int8",
-) -> LocalWhisperTranscriber:
+def get_transcriber() -> CrisperWhisperTranscriber:
     """
-    Cache the transcriber so the Whisper model is not reloaded for every file.
+    Cache the CrisperWhisper transcriber so the model is not reloaded
+    for every file.
     """
-    key = (model_size, device, compute_type)
-    if key not in _TRANSCRIBERS:
-        _TRANSCRIBERS[key] = LocalWhisperTranscriber(
-            model_size=model_size,
-            device=device,
-            compute_type=compute_type,
-        )
-    return _TRANSCRIBERS[key]
+    global _TRANSCRIBER
+    if _TRANSCRIBER is None:
+        _TRANSCRIBER = CrisperWhisperTranscriber()
+    return _TRANSCRIBER
 
 
-def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
+def run_pipeline(file_path: str, variant: str = "multimodal", use_emotion: bool = False) -> Dict:
     """
     Runs the system in one of three modes:
       - speech_only: compute only speech metrics
@@ -60,29 +56,32 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
         with timer.track("speech_analysis"):
             speech_metrics = compute_speech_metrics(waveform, sr)
 
+    # --- Emotion analysis (opt-in, audio-based) ---
+    emotion_data: Optional[Dict] = None
+    if use_emotion and variant in ("speech_only", "multimodal"):
+        with timer.track("emotion_analysis"):
+            emotion_data = predict_emotion(file_path)
+
     # --- Transcription + text metrics ---
     text_metrics: Optional[Dict] = None
     transcript = ""
-    wc = 0
 
     if variant in ("text_only", "multimodal"):
-        # small is a better balance for your dissertation than base
-        transcriber = get_transcriber(model_size="small", device="cpu", compute_type="int8")
+        transcriber = get_transcriber()
 
         with timer.track("transcription"):
-            result = transcriber.transcribe(file_path)
+            result = get_or_transcribe(file_path, transcriber)
 
         transcript = result.transcript
-        wc = word_count(transcript)
 
         with timer.track("text_analysis"):
-            text_metrics = compute_text_metrics(transcript)
+            text_metrics = compute_text_metrics(result.transcript, result.clean_text)
 
     # --- WPM ---
-    # Compute whenever transcript exists, even for text_only
+    # Compute whenever transcript exists, even for text_only (use clean_word_count)
     wpm_value: Optional[float] = None
-    if wc > 0:
-        wpm_value = speech_rate_wpm(wc, duration)
+    if text_metrics and text_metrics.get("clean_word_count", 0) > 0:
+        wpm_value = speech_rate_wpm(text_metrics["clean_word_count"], duration)
 
     # Add derived pause features if speech metrics exist
     if speech_metrics is not None:
@@ -93,6 +92,10 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
 
         speech_metrics["pause_rate_per_min"] = (pause_count / duration) * 60.0 if duration > 0 else 0.0
         speech_metrics["pause_ratio"] = (total_pause_sec / duration) if duration > 0 else 0.0
+
+    # Attach emotion data to speech metrics
+    if speech_metrics is not None and emotion_data is not None:
+        speech_metrics["emotion"] = emotion_data
 
     # --- Scoring inputs ---
     # "available" flags let the scorer know whether a modality truly exists
@@ -123,7 +126,7 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
 
     safe_text = dict(text_metrics or {
         "transcript": transcript,
-        "word_count": wc,
+        "word_count": 0,
         "filler_count": 0,
         "filler_rate_per_100w": 0.0,
         "repeat_rate": 0.0,
@@ -132,7 +135,7 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
 
     # --- Scoring / fusion ---
     with timer.track("fusion"):
-        score_out = scoring_v1(speech=score_speech, text=score_text)
+        score_out = scoring_v1(speech=score_speech, text=score_text, use_emotion=use_emotion)
 
     # --- Feedback ---
     with timer.track("feedback"):
@@ -149,6 +152,7 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
         "preprocess": timer.ms.get("preprocess", 0.0),
         "transcription": timer.ms.get("transcription", 0.0),
         "speech_analysis": timer.ms.get("speech_analysis", 0.0),
+        "emotion_analysis": timer.ms.get("emotion_analysis", 0.0),
         "text_analysis": timer.ms.get("text_analysis", 0.0),
         "fusion": timer.ms.get("fusion", 0.0),
         "feedback": timer.ms.get("feedback", 0.0),
@@ -171,5 +175,6 @@ def run_pipeline(file_path: str, variant: str = "multimodal") -> Dict:
     result["meta"]["session_id"] = session_id
     result["meta"]["input_file"] = str(file_path)
     result["meta"]["pipeline_variant"] = variant
+    result["meta"]["transcription_source"] = "crisper_whisper"
 
     return result

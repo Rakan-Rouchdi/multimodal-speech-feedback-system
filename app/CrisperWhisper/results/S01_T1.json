@@ -1,0 +1,952 @@
+{
+  "file": "S01_T1.wav",
+  "language": "en",
+  "text": "Hello my name's Khalid and I'm currently completing a degree in aviation technology with pilot studies at the University of Leeds through my studies I've developed a strong understanding of both the technical and operational aspects of aviation so I've got a solid [UH] foundation particularly in areas such as [UH] flight performance human factors and safety critical decision making which ties into CRM and [UH] alongside this I've also gained practical flying experience [UM] separate to my degree but in my own time which is. My ability to remain calm under pressure manage workload effect effectively and also operate in a structured [UH] procedure driven [UH] environment which is really important in the aviation world [UH] I'm particularly interested in this graduate role because it aligns [UH] very well with my passion for aviation operation and continuous improvement and I also enjoy analyzing systems identifying inefficiencies and contributing to a safer and more effective [UM] outcome in the aviation world I believe I'd be a really strong .Can .Be. Due to my combination of technical knowledge practical aviation experience and [UH] very proactive mindset. [UH] thank you. Thank.",
+  "words": [
+    {
+      "text": "Hello",
+      "start_s": 0.11,
+      "end_s": 0.49
+    },
+    {
+      "text": "my",
+      "start_s": 0.49,
+      "end_s": 0.81
+    },
+    {
+      "text": "name's",
+      "start_s": 0.81,
+      "end_s": 1.17
+    },
+    {
+      "text": "Khalid",
+      "start_s": 1.17,
+      "end_s": 1.51
+    },
+    {
+      "text": "and",
+      "start_s": 1.51,
+      "end_s": 1.81
+    },
+    {
+      "text": "I'm",
+      "start_s": 1.81,
+      "end_s": 2.05
+    },
+    {
+      "text": "currently",
+      "start_s": 2.05,
+      "end_s": 2.33
+    },
+    {
+      "text": "completing",
+      "start_s": 2.33,
+      "end_s": 2.71
+    },
+    {
+      "text": "a",
+      "start_s": 2.71,
+      "end_s": 2.85
+    },
+    {
+      "text": "degree",
+      "start_s": 2.85,
+      "end_s": 3.15
+    },
+    {
+      "text": "in",
+      "start_s": 3.15,
+      "end_s": 3.47
+    },
+    {
+      "text": "aviation",
+      "start_s": 3.47,
+      "end_s": 3.91
+    },
+    {
+      "text": "technology",
+      "start_s": 3.91,
+      "end_s": 4.53
+    },
+    {
+      "text": "with",
+      "start_s": 4.53,
+      "end_s": 4.75
+    },
+    {
+      "text": "pilot",
+      "start_s": 4.75,
+      "end_s": 5.03
+    },
+    {
+      "text": "studies",
+      "start_s": 5.03,
+      "end_s": 5.37
+    },
+    {
+      "text": "at",
+      "start_s": 5.37,
+      "end_s": 5.51
+    },
+    {
+      "text": "the",
+      "start_s": 5.51,
+      "end_s": 5.59
+    },
+    {
+      "text": "University",
+      "start_s": 5.59,
+      "end_s": 5.97
+    },
+    {
+      "text": "of",
+      "start_s": 5.97,
+      "end_s": 6.09
+    },
+    {
+      "text": "Leeds",
+      "start_s": 6.09,
+      "end_s": 6.45
+    },
+    {
+      "text": "through",
+      "start_s": 6.45,
+      "end_s": 7.11
+    },
+    {
+      "text": "my",
+      "start_s": 7.11,
+      "end_s": 7.27
+    },
+    {
+      "text": "studies",
+      "start_s": 7.27,
+      "end_s": 7.73
+    },
+    {
+      "text": "I've",
+      "start_s": 7.73,
+      "end_s": 8.23
+    },
+    {
+      "text": "developed",
+      "start_s": 8.23,
+      "end_s": 8.61
+    },
+    {
+      "text": "a",
+      "start_s": 8.61,
+      "end_s": 8.73
+    },
+    {
+      "text": "strong",
+      "start_s": 8.73,
+      "end_s": 8.95
+    },
+    {
+      "text": "understanding",
+      "start_s": 8.95,
+      "end_s": 9.39
+    },
+    {
+      "text": "of",
+      "start_s": 9.39,
+      "end_s": 9.53
+    },
+    {
+      "text": "both",
+      "start_s": 9.53,
+      "end_s": 9.69
+    },
+    {
+      "text": "the",
+      "start_s": 9.69,
+      "end_s": 9.83
+    },
+    {
+      "text": "technical",
+      "start_s": 9.83,
+      "end_s": 10.27
+    },
+    {
+      "text": "and",
+      "start_s": 10.27,
+      "end_s": 10.43
+    },
+    {
+      "text": "operational",
+      "start_s": 10.43,
+      "end_s": 10.89
+    },
+    {
+      "text": "aspects",
+      "start_s": 10.89,
+      "end_s": 11.33
+    },
+    {
+      "text": "of",
+      "start_s": 11.33,
+      "end_s": 11.49
+    },
+    {
+      "text": "aviation",
+      "start_s": 11.49,
+      "end_s": 11.91
+    },
+    {
+      "text": "so",
+      "start_s": 11.91,
+      "end_s": 12.29
+    },
+    {
+      "text": "I've",
+      "start_s": 12.29,
+      "end_s": 12.51
+    },
+    {
+      "text": "got",
+      "start_s": 12.51,
+      "end_s": 12.79
+    },
+    {
+      "text": "a",
+      "start_s": 12.79,
+      "end_s": 12.99
+    },
+    {
+      "text": "solid",
+      "start_s": 12.99,
+      "end_s": 13.45
+    },
+    {
+      "text": "[UH]",
+      "start_s": 13.45,
+      "end_s": 13.91
+    },
+    {
+      "text": "foundation",
+      "start_s": 13.91,
+      "end_s": 14.55
+    },
+    {
+      "text": "particularly",
+      "start_s": 14.55,
+      "end_s": 15.17
+    },
+    {
+      "text": "in",
+      "start_s": 15.17,
+      "end_s": 15.25
+    },
+    {
+      "text": "areas",
+      "start_s": 15.25,
+      "end_s": 15.59
+    },
+    {
+      "text": "such",
+      "start_s": 15.59,
+      "end_s": 15.85
+    },
+    {
+      "text": "as",
+      "start_s": 15.85,
+      "end_s": 16.27
+    },
+    {
+      "text": "[UH]",
+      "start_s": 16.27,
+      "end_s": 16.55
+    },
+    {
+      "text": "flight",
+      "start_s": 16.55,
+      "end_s": 16.85
+    },
+    {
+      "text": "performance",
+      "start_s": 16.85,
+      "end_s": 17.77
+    },
+    {
+      "text": "human",
+      "start_s": 17.77,
+      "end_s": 18.31
+    },
+    {
+      "text": "factors",
+      "start_s": 18.31,
+      "end_s": 18.85
+    },
+    {
+      "text": "and",
+      "start_s": 18.85,
+      "end_s": 19.29
+    },
+    {
+      "text": "safety",
+      "start_s": 19.29,
+      "end_s": 19.69
+    },
+    {
+      "text": "critical",
+      "start_s": 19.69,
+      "end_s": 19.93
+    },
+    {
+      "text": "decision",
+      "start_s": 19.93,
+      "end_s": 20.23
+    },
+    {
+      "text": "making",
+      "start_s": 20.23,
+      "end_s": 20.75
+    },
+    {
+      "text": "which",
+      "start_s": 20.75,
+      "end_s": 21.19
+    },
+    {
+      "text": "ties",
+      "start_s": 21.19,
+      "end_s": 21.53
+    },
+    {
+      "text": "into",
+      "start_s": 21.53,
+      "end_s": 21.77
+    },
+    {
+      "text": "CRM",
+      "start_s": 21.77,
+      "end_s": 22.65
+    },
+    {
+      "text": "and",
+      "start_s": 22.65,
+      "end_s": 23.43
+    },
+    {
+      "text": "[UH]",
+      "start_s": 23.43,
+      "end_s": 23.79
+    },
+    {
+      "text": "alongside",
+      "start_s": 23.79,
+      "end_s": 24.25
+    },
+    {
+      "text": "this",
+      "start_s": 24.25,
+      "end_s": 24.49
+    },
+    {
+      "text": "I've",
+      "start_s": 24.49,
+      "end_s": 24.59
+    },
+    {
+      "text": "also",
+      "start_s": 24.59,
+      "end_s": 24.79
+    },
+    {
+      "text": "gained",
+      "start_s": 24.79,
+      "end_s": 25.03
+    },
+    {
+      "text": "practical",
+      "start_s": 25.03,
+      "end_s": 25.53
+    },
+    {
+      "text": "flying",
+      "start_s": 25.53,
+      "end_s": 25.91
+    },
+    {
+      "text": "experience",
+      "start_s": 25.91,
+      "end_s": 26.57
+    },
+    {
+      "text": "[UM]",
+      "start_s": 26.57,
+      "end_s": 27.29
+    },
+    {
+      "text": "separate",
+      "start_s": 27.29,
+      "end_s": 28.11
+    },
+    {
+      "text": "to",
+      "start_s": 28.11,
+      "end_s": 28.21
+    },
+    {
+      "text": "my",
+      "start_s": 28.21,
+      "end_s": 28.35
+    },
+    {
+      "text": "degree",
+      "start_s": 28.35,
+      "end_s": 28.67
+    },
+    {
+      "text": "but",
+      "start_s": 28.67,
+      "end_s": 28.83
+    },
+    {
+      "text": "in",
+      "start_s": 28.83,
+      "end_s": 28.97
+    },
+    {
+      "text": "my",
+      "start_s": 28.97,
+      "end_s": 29.15
+    },
+    {
+      "text": "own",
+      "start_s": 29.15,
+      "end_s": 29.33
+    },
+    {
+      "text": "time",
+      "start_s": 29.33,
+      "end_s": 29.61
+    },
+    {
+      "text": "which",
+      "start_s": 29.61,
+      "end_s": 29.75
+    },
+    {
+      "text": "is.",
+      "start_s": 29.75,
+      "end_s": 29.95
+    },
+    {
+      "text": "My",
+      "start_s": 30.11,
+      "end_s": 30.35
+    },
+    {
+      "text": "ability",
+      "start_s": 30.35,
+      "end_s": 30.89
+    },
+    {
+      "text": "to",
+      "start_s": 30.89,
+      "end_s": 31.23
+    },
+    {
+      "text": "remain",
+      "start_s": 31.23,
+      "end_s": 31.85
+    },
+    {
+      "text": "calm",
+      "start_s": 31.85,
+      "end_s": 32.07
+    },
+    {
+      "text": "under",
+      "start_s": 32.07,
+      "end_s": 32.23
+    },
+    {
+      "text": "pressure",
+      "start_s": 32.23,
+      "end_s": 32.59
+    },
+    {
+      "text": "manage",
+      "start_s": 32.59,
+      "end_s": 33.09
+    },
+    {
+      "text": "workload",
+      "start_s": 33.09,
+      "end_s": 33.43
+    },
+    {
+      "text": "effect",
+      "start_s": 33.43,
+      "end_s": 33.63
+    },
+    {
+      "text": "effectively",
+      "start_s": 33.63,
+      "end_s": 34.23
+    },
+    {
+      "text": "and",
+      "start_s": 34.23,
+      "end_s": 35.09
+    },
+    {
+      "text": "also",
+      "start_s": 35.09,
+      "end_s": 35.51
+    },
+    {
+      "text": "operate",
+      "start_s": 35.51,
+      "end_s": 35.87
+    },
+    {
+      "text": "in",
+      "start_s": 35.87,
+      "end_s": 36.05
+    },
+    {
+      "text": "a",
+      "start_s": 36.05,
+      "end_s": 36.09
+    },
+    {
+      "text": "structured",
+      "start_s": 36.09,
+      "end_s": 36.69
+    },
+    {
+      "text": "[UH]",
+      "start_s": 36.69,
+      "end_s": 36.99
+    },
+    {
+      "text": "procedure",
+      "start_s": 36.99,
+      "end_s": 37.43
+    },
+    {
+      "text": "driven",
+      "start_s": 37.43,
+      "end_s": 37.87
+    },
+    {
+      "text": "[UH]",
+      "start_s": 37.87,
+      "end_s": 38.15
+    },
+    {
+      "text": "environment",
+      "start_s": 38.15,
+      "end_s": 38.65
+    },
+    {
+      "text": "which",
+      "start_s": 38.65,
+      "end_s": 39.51
+    },
+    {
+      "text": "is",
+      "start_s": 39.51,
+      "end_s": 39.71
+    },
+    {
+      "text": "really",
+      "start_s": 39.71,
+      "end_s": 39.87
+    },
+    {
+      "text": "important",
+      "start_s": 39.87,
+      "end_s": 40.25
+    },
+    {
+      "text": "in",
+      "start_s": 40.25,
+      "end_s": 40.45
+    },
+    {
+      "text": "the",
+      "start_s": 40.45,
+      "end_s": 40.63
+    },
+    {
+      "text": "aviation",
+      "start_s": 40.63,
+      "end_s": 41.07
+    },
+    {
+      "text": "world",
+      "start_s": 41.07,
+      "end_s": 41.45
+    },
+    {
+      "text": "[UH]",
+      "start_s": 41.45,
+      "end_s": 41.99
+    },
+    {
+      "text": "I'm",
+      "start_s": 41.99,
+      "end_s": 42.19
+    },
+    {
+      "text": "particularly",
+      "start_s": 42.19,
+      "end_s": 42.69
+    },
+    {
+      "text": "interested",
+      "start_s": 42.69,
+      "end_s": 43.03
+    },
+    {
+      "text": "in",
+      "start_s": 43.03,
+      "end_s": 43.15
+    },
+    {
+      "text": "this",
+      "start_s": 43.15,
+      "end_s": 43.31
+    },
+    {
+      "text": "graduate",
+      "start_s": 43.31,
+      "end_s": 43.65
+    },
+    {
+      "text": "role",
+      "start_s": 43.65,
+      "end_s": 43.85
+    },
+    {
+      "text": "because",
+      "start_s": 43.85,
+      "end_s": 44.15
+    },
+    {
+      "text": "it",
+      "start_s": 44.15,
+      "end_s": 44.25
+    },
+    {
+      "text": "aligns",
+      "start_s": 44.25,
+      "end_s": 44.95
+    },
+    {
+      "text": "[UH]",
+      "start_s": 44.95,
+      "end_s": 45.19
+    },
+    {
+      "text": "very",
+      "start_s": 45.19,
+      "end_s": 45.45
+    },
+    {
+      "text": "well",
+      "start_s": 45.45,
+      "end_s": 45.63
+    },
+    {
+      "text": "with",
+      "start_s": 45.63,
+      "end_s": 45.75
+    },
+    {
+      "text": "my",
+      "start_s": 45.75,
+      "end_s": 45.83
+    },
+    {
+      "text": "passion",
+      "start_s": 45.83,
+      "end_s": 46.25
+    },
+    {
+      "text": "for",
+      "start_s": 46.25,
+      "end_s": 46.47
+    },
+    {
+      "text": "aviation",
+      "start_s": 46.47,
+      "end_s": 46.85
+    },
+    {
+      "text": "operation",
+      "start_s": 46.85,
+      "end_s": 47.33
+    },
+    {
+      "text": "and",
+      "start_s": 47.33,
+      "end_s": 47.49
+    },
+    {
+      "text": "continuous",
+      "start_s": 47.49,
+      "end_s": 47.93
+    },
+    {
+      "text": "improvement",
+      "start_s": 47.93,
+      "end_s": 48.57
+    },
+    {
+      "text": "and",
+      "start_s": 48.57,
+      "end_s": 49.49
+    },
+    {
+      "text": "I",
+      "start_s": 49.49,
+      "end_s": 49.69
+    },
+    {
+      "text": "also",
+      "start_s": 49.69,
+      "end_s": 49.97
+    },
+    {
+      "text": "enjoy",
+      "start_s": 49.97,
+      "end_s": 50.27
+    },
+    {
+      "text": "analyzing",
+      "start_s": 50.27,
+      "end_s": 50.77
+    },
+    {
+      "text": "systems",
+      "start_s": 50.77,
+      "end_s": 51.55
+    },
+    {
+      "text": "identifying",
+      "start_s": 51.55,
+      "end_s": 52.27
+    },
+    {
+      "text": "inefficiencies",
+      "start_s": 52.27,
+      "end_s": 53.03
+    },
+    {
+      "text": "and",
+      "start_s": 53.03,
+      "end_s": 53.73
+    },
+    {
+      "text": "contributing",
+      "start_s": 53.73,
+      "end_s": 54.41
+    },
+    {
+      "text": "to",
+      "start_s": 54.41,
+      "end_s": 54.57
+    },
+    {
+      "text": "a",
+      "start_s": 54.57,
+      "end_s": 54.71
+    },
+    {
+      "text": "safer",
+      "start_s": 54.71,
+      "end_s": 55.03
+    },
+    {
+      "text": "and",
+      "start_s": 55.03,
+      "end_s": 55.13
+    },
+    {
+      "text": "more",
+      "start_s": 55.13,
+      "end_s": 55.31
+    },
+    {
+      "text": "effective",
+      "start_s": 55.31,
+      "end_s": 55.89
+    },
+    {
+      "text": "[UM]",
+      "start_s": 55.89,
+      "end_s": 56.35
+    },
+    {
+      "text": "outcome",
+      "start_s": 56.35,
+      "end_s": 57.11
+    },
+    {
+      "text": "in",
+      "start_s": 57.11,
+      "end_s": 57.23
+    },
+    {
+      "text": "the",
+      "start_s": 57.23,
+      "end_s": 57.33
+    },
+    {
+      "text": "aviation",
+      "start_s": 57.33,
+      "end_s": 57.73
+    },
+    {
+      "text": "world",
+      "start_s": 57.73,
+      "end_s": 58.05
+    },
+    {
+      "text": "I",
+      "start_s": 58.05,
+      "end_s": 58.55
+    },
+    {
+      "text": "believe",
+      "start_s": 58.55,
+      "end_s": 58.81
+    },
+    {
+      "text": "I'd",
+      "start_s": 58.81,
+      "end_s": 58.95
+    },
+    {
+      "text": "be",
+      "start_s": 58.95,
+      "end_s": 59.17
+    },
+    {
+      "text": "a",
+      "start_s": 59.17,
+      "end_s": 59.31
+    },
+    {
+      "text": "really",
+      "start_s": 59.31,
+      "end_s": 59.57
+    },
+    {
+      "text": "strong",
+      "start_s": 59.57,
+      "end_s": 59.87
+    },
+    {
+      "text": ".Can",
+      "start_s": 59.87,
+      "end_s": 59.99
+    },
+    {
+      "text": ".Be.",
+      "start_s": 59.99,
+      "end_s": 60.09
+    },
+    {
+      "text": "Due",
+      "start_s": 60.09,
+      "end_s": 60.15
+    },
+    {
+      "text": "to",
+      "start_s": 60.15,
+      "end_s": 60.51
+    },
+    {
+      "text": "my",
+      "start_s": 60.51,
+      "end_s": 60.81
+    },
+    {
+      "text": "combination",
+      "start_s": 60.81,
+      "end_s": 61.29
+    },
+    {
+      "text": "of",
+      "start_s": 61.29,
+      "end_s": 61.47
+    },
+    {
+      "text": "technical",
+      "start_s": 61.47,
+      "end_s": 61.87
+    },
+    {
+      "text": "knowledge",
+      "start_s": 61.87,
+      "end_s": 62.19
+    },
+    {
+      "text": "practical",
+      "start_s": 62.19,
+      "end_s": 62.77
+    },
+    {
+      "text": "aviation",
+      "start_s": 62.77,
+      "end_s": 63.15
+    },
+    {
+      "text": "experience",
+      "start_s": 63.15,
+      "end_s": 63.73
+    },
+    {
+      "text": "and",
+      "start_s": 63.73,
+      "end_s": 64.09
+    },
+    {
+      "text": "[UH]",
+      "start_s": 64.09,
+      "end_s": 64.31
+    },
+    {
+      "text": "very",
+      "start_s": 64.31,
+      "end_s": 64.57
+    },
+    {
+      "text": "proactive",
+      "start_s": 64.57,
+      "end_s": 64.97
+    },
+    {
+      "text": "mindset.",
+      "start_s": 64.97,
+      "end_s": 65.45
+    },
+    {
+      "text": "[UH]",
+      "start_s": 65.45,
+      "end_s": 66.39
+    },
+    {
+      "text": "thank",
+      "start_s": 66.39,
+      "end_s": 66.73
+    },
+    {
+      "text": "you.",
+      "start_s": 66.73,
+      "end_s": 66.89
+    },
+    {
+      "text": "Thank.",
+      "start_s": 66.89,
+      "end_s": 67.31
+    }
+  ]
+}

@@ -18,6 +18,11 @@ def main():
     print("Human columns:", list(human_df.columns))
     print()
 
+    # Create recording_id column in model_df by removing .wav extension from filename
+    model_df["recording_id"] = model_df["filename"].str.replace(".wav", "")
+    
+    print("Created recording_id column in model_df")
+    
     # rename human columns to a consistent format
     human_df = human_df.rename(columns={
         "confidence_human": "human_confidence",

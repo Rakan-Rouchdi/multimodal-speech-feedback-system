@@ -75,12 +75,62 @@ def round_or_zero(x: Optional[float]) -> float:
     return round(x, 1) if x is not None else 0.0
 
 
-def scoring_v1(speech: Dict, text: Dict) -> Dict:
+# ── Emotion-to-score mapping ──────────────────────────────────────────────────
+# Maps each emotion label to a (confidence_value, engagement_value) pair on 0-100.
+#   - Confidence: calm/neutral delivery scores highest
+#   - Engagement: happy/surprised delivery scores highest
+EMOTION_SCORE_MAP = {
+    "neutral":   (85.0, 40.0),
+    "calm":      (95.0, 35.0),
+    "happy":     (70.0, 95.0),
+    "surprised": (55.0, 85.0),
+    "angry":     (40.0, 60.0),
+    "fearful":   (25.0, 30.0),
+    "sad":       (30.0, 20.0),
+    "disgust":   (35.0, 25.0),
+}
+
+
+def _emotion_subscore(emotion_data: Optional[Dict], dimension: str) -> Optional[float]:
     """
-    Improved heuristic scoring with:
-    - better clarity behaviour
-    - pause frequency and pause ratio
-    - coverage-aware scoring for missing modalities
+    Derive a 0-100 subscore from emotion probabilities.
+
+    Uses a probability-weighted blend of all emotion scores rather than
+    relying solely on the argmax label — this is more robust when the model
+    is uncertain.
+
+    *dimension* must be ``"confidence"`` or ``"engagement"``.
+    """
+    if not emotion_data:
+        return None
+
+    probs = emotion_data.get("probabilities")
+    if not probs:
+        return None
+
+    dim_idx = 0 if dimension == "confidence" else 1
+    score = 0.0
+    total_prob = 0.0
+
+    for label, prob in probs.items():
+        if label in EMOTION_SCORE_MAP:
+            score += prob * EMOTION_SCORE_MAP[label][dim_idx]
+            total_prob += prob
+
+    if total_prob <= 0:
+        return None
+
+    return score / total_prob
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def scoring_v1(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
+    """
+    Evidence-based asymmetric scoring:
+    - confidence: text-led (0.65 text, 0.35 speech)
+    - clarity: text-led (0.70 text, 0.30 speech)  
+    - engagement: speech-led (0.85 speech, 0.15 text)
+    - emotion opt-in
     """
 
     speech_available = bool(speech.get("available", bool(speech)))
@@ -99,6 +149,11 @@ def scoring_v1(speech: Dict, text: Dict) -> Dict:
     energy = float(speech.get("energy_mean", 0.0)) if speech_available else None
     pause_rate = float(speech.get("pause_rate_per_min", 0.0)) if speech_available else None
     pause_ratio = float(speech.get("pause_ratio", 0.0)) if speech_available else None
+
+    # Emotion data (opt-in)
+    emotion_data = None
+    if use_emotion and speech_available:
+        emotion_data = speech.get("emotion")
 
     # --- Subscores ---
     wpm_score = score_from_range(wpm, ideal_min=120, ideal_max=165, hard_min=85, hard_max=210) if (wpm is not None and wpm > 0) else None
@@ -135,32 +190,38 @@ def scoring_v1(speech: Dict, text: Dict) -> Dict:
         if energy is not None else None
     )
 
-    # --- Headline scores ---
+    # Emotion-derived subscores
+    emotion_confidence_score = _emotion_subscore(emotion_data, "confidence")
+    emotion_engagement_score = _emotion_subscore(emotion_data, "engagement")
+
+    # --- Headline scores (asymmetric evidence-based weights) ---
+    # CONFIDENCE: text-led (0.65T 0.35S)
     confidence = coverage_adjusted_score([
-        (0.30, filler_score),
-        (0.20, mean_pause_score),
-        (0.20, pause_rate_score),
-        (0.15, pause_ratio_score),
-        (0.15, wpm_score),
-    ])
+        (0.40, filler_score),      # text: strongest confidence signal
+        (0.25, repeat_score),      # text: repetition hurts confidence
+        (0.20, mean_pause_score),  # speech: hesitation
+        (0.15, wpm_score),         # shared
+    ] + [(0.10, emotion_confidence_score)] if emotion_confidence_score else [])
 
+    # CLARITY: text-led (0.70T 0.30S)
     clarity = coverage_adjusted_score([
-        (0.25, mean_pause_score),
-        (0.20, pause_rate_score),
-        (0.20, wpm_score),
-        (0.15, repeat_score),
-        (0.10, filler_score),
-        (0.10, readability_score),
+        (0.35, readability_score), # text: structure
+        (0.25, filler_score),      # text: clean delivery
+        (0.15, repeat_score),      # text: no redundancy
+        (0.15, wpm_score),         # shared
+        (0.10, mean_pause_score),  # speech
     ])
 
-    # Engagement stays mainly speech-driven
-    engagement = coverage_adjusted_score([
-        (0.40, pitch_var_score),
-        (0.30, energy_score),
-        (0.15, wpm_score),
-        (0.10, pause_rate_score),
-        (0.05, pause_ratio_score),
-    ])
+    # ENGAGEMENT: speech-led (0.85S 0.15T/shared)
+    engagement_items = [
+        (0.40, pitch_var_score),   # speech: prosody
+        (0.30, energy_score),      # speech: energy
+        (0.20, wpm_score),         # shared: pacing
+        (0.10, pause_rate_score),  # speech
+    ]
+    if emotion_engagement_score:
+        engagement_items.append((0.10, emotion_engagement_score))
+    engagement = coverage_adjusted_score(engagement_items)
 
     confidence = clamp_0_100(confidence)
     clarity = clamp_0_100(clarity)
@@ -187,5 +248,7 @@ def scoring_v1(speech: Dict, text: Dict) -> Dict:
             "pause_rate_score": round_or_zero(pause_rate_score),
             "pause_ratio_score": round_or_zero(pause_ratio_score),
             "energy_score": round_or_zero(energy_score),
+            "emotion_confidence_score": round_or_zero(emotion_confidence_score),
+            "emotion_engagement_score": round_or_zero(emotion_engagement_score),
         },
     }

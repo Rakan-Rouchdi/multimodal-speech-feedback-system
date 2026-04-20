@@ -50,6 +50,7 @@ def flatten_result(file_path: Path, result: Dict) -> Dict:
         "lat_preprocess_ms": latency.get("preprocess"),
         "lat_transcription_ms": latency.get("transcription"),
         "lat_speech_analysis_ms": latency.get("speech_analysis"),
+        "lat_emotion_analysis_ms": latency.get("emotion_analysis"),
         "lat_text_analysis_ms": latency.get("text_analysis"),
         "lat_fusion_ms": latency.get("fusion"),
         "lat_feedback_ms": latency.get("feedback"),
@@ -64,16 +65,25 @@ def flatten_result(file_path: Path, result: Dict) -> Dict:
         "word_count": text.get("word_count"),
         "filler_rate_per_100w": text.get("filler_rate_per_100w"),
         "repeat_rate": text.get("repeat_rate"),
-        "readability_proxy": text.get("readability_proxy"),
+    "readability_proxy": text.get("readability_proxy"),
+    "filler_count": text.get("filler_count"),
+    "disfluency_count": text.get("disfluency_count"),
+    "raw_word_count": text.get("raw_word_count"),
+    "clean_word_count": text.get("clean_word_count"),
+    "transcription_source": result["meta"].get("transcription_source"),
+
+    # Emotion
+    "emotion_top": speech.get("emotion", {}).get("top_label") if isinstance(speech.get("emotion"), dict) else None,
     }
     return row
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir", type=str, default="data")
+    parser.add_argument("--data_dir", type=str, default="data/main_eval")
     parser.add_argument("--out_csv", type=str, default="outputs/eval_summary.csv")
     parser.add_argument("--save_json", action="store_true", help="Also save each full JSON output into outputs/")
+    parser.add_argument("--use_emotion", action="store_true", help="Enable emotion analysis (default: off)")
     parser.add_argument("--limit", type=int, default=0, help="Limit number of audio files (0 = no limit)")
     args = parser.parse_args()
 
@@ -87,12 +97,14 @@ def main():
     rows = []
     Path(args.out_csv).parent.mkdir(parents=True, exist_ok=True)
 
+    use_emotion = args.use_emotion
+
     for f in audio_files:
         for variant in VARIANTS:
-            result = run_pipeline(str(f), variant)
+            result = run_pipeline(str(f), variant, use_emotion=use_emotion)
 
             if args.save_json:
-                save_result_json(result, outputs_dir="outputs")
+                save_result_json(result, base_outputs_dir="outputs")
 
             rows.append(flatten_result(f, result))
             print(f"Processed {f.name} [{variant}] -> scores: {result['scores']}")

@@ -1,4 +1,4 @@
-from app.text_analysis.metrics import count_fillers, filler_rate_per_100w
+from app.text_analysis.metrics import count_fillers, filler_rate_per_100w, count_words
 
 
 def test_count_fillers_single_and_multiword():
@@ -9,5 +9,6 @@ def test_count_fillers_single_and_multiword():
 
 def test_filler_rate_per_100w_nonzero():
     text = "um " * 10 + "hello world " * 10  # 10 fillers, 20 content words
-    rate = filler_rate_per_100w(text)
+    wc = count_words(text)
+    rate = filler_rate_per_100w(text, wc)
     assert rate > 0
