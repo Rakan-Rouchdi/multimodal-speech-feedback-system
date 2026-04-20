@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Optional, Tuple, List
+from dataclasses import dataclass, field
+from typing import Optional, Tuple, List, Dict
 
 from faster_whisper import WhisperModel
 
@@ -11,6 +11,8 @@ class TranscriptionResult:
     transcript: str
     language: Optional[str]
     segments: List[dict]
+    clean_text: str = ""
+    words: List[Dict] = field(default_factory=list)
 
 
 class LocalWhisperTranscriber:
@@ -52,6 +54,7 @@ class LocalWhisperTranscriber:
         )
 
 
-def word_count(text: str) -> int:
-    # simple and robust
+def word_count(result: "TranscriptionResult") -> int:
+    # Prefer clean_text if available, fallback to raw transcript split
+    text = result.clean_text if result.clean_text.strip() else result.transcript
     return len([w for w in text.strip().split() if w])

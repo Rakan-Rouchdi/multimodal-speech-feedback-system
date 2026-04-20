@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip3 --version)",
+      "Bash(conda --version)",
+      "Bash(conda env list)",
+      "Bash(conda create --name crisperWhisper python=3.10 -y)",
+      "Bash(conda run -n crisperWhisper pip install torch torchaudio accelerate scipy librosa)",
+      "Bash(conda run -n crisperWhisper pip install git+https://github.com/nyrahealth/transformers.git@crisper_whisper)",
+      "Bash(conda run -n crisperWhisper huggingface-cli whoami)",
+      "Bash(conda run -n crisperWhisper huggingface-cli login)",
+      "Read(//Users/rakanrouchdi/.cache/huggingface/**)",
+      "Read(//Users/rakanrouchdi/.huggingface/**)",
+      "Bash(chmod +x /Users/rakanrouchdi/CrisperWhisper/run_transcription.sh)",
+      "Bash(conda run -n crisperWhisper python -c \":*)",
+      "Bash(conda run -n crisperWhisper pip list)",
+      "Bash(sysctl hw.memsize)",
+      "Bash(sysctl hw.physicalcpu)",
+      "Bash(conda run -n crisperWhisper python3 -c \":*)",
+      "Bash(conda run -n crisperWhisper pip install faster-whisper)"
+    ]
+  }
+}

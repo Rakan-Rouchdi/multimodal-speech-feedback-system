@@ -7,8 +7,11 @@ BANDS = [
     ("Excellent", 85, 100),
 ]
 
-# Starter filler list (expand later)
+# Filler words — includes CrisperWhisper disfluency markers ([UH], [UM])
 FILLER_WORDS = {
     "um", "uh", "erm", "like", "you know", "sort of", "kind of",
-    "basically", "actually", "literally", "right", "okay"
+    "basically", "actually", "literally", "right", "okay",
 }
+
+# CrisperWhisper outputs disfluencies in bracket notation
+DISFLUENCY_MARKERS = {"[UH]", "[UM]"}
