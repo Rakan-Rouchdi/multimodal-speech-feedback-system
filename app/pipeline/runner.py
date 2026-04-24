@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, Optional
 
+from app.contracts.constants import PIPELINE_VARIANTS
 from app.audio.preprocessing import preprocess_audio
-from app.transcription.whisper_transcribe import word_count
 from app.transcription.crisper_whisper import CrisperWhisperTranscriber
 from app.transcription.cache import get_or_transcribe
 from app.text_analysis.metrics import compute_text_metrics
@@ -40,8 +40,8 @@ def run_pipeline(file_path: str, variant: str = "multimodal", use_emotion: bool 
 
     Returns a schema-compliant result dict.
     """
-    if variant not in ("speech_only", "text_only", "multimodal"):
-        raise ValueError("variant must be one of: speech_only, text_only, multimodal")
+    if variant not in PIPELINE_VARIANTS:
+        raise ValueError(f"variant must be one of: {', '.join(PIPELINE_VARIANTS)}")
 
     session_id = Path(file_path).stem
     timer = Timer()
@@ -158,9 +158,14 @@ def run_pipeline(file_path: str, variant: str = "multimodal", use_emotion: bool 
         "feedback": timer.ms.get("feedback", 0.0),
         "total": timer.ms.get("total", 0.0),
     }
+    latency_ms["preprocessing"] = latency_ms["preprocess"]
+    latency_ms["scoring"] = latency_ms["fusion"]
+    latency_ms["feedback_generation"] = latency_ms["feedback"]
+    latency_ms["total_runtime"] = latency_ms["total"]
 
     # --- Build final result ---
     result = build_result(
+        input_file=str(file_path),
         variant=variant,
         source="upload",
         duration_sec=duration,
@@ -168,13 +173,16 @@ def run_pipeline(file_path: str, variant: str = "multimodal", use_emotion: bool 
         scores_block=score_out["scores"],
         speech_metrics=safe_speech if variant in ("speech_only", "multimodal") else None,
         text_metrics=safe_text if variant in ("text_only", "multimodal") else None,
+        transcript=transcript,
+        emotion_output=emotion_data,
         feedback=feedback,
         latency_ms=latency_ms,
     )
 
     result["meta"]["session_id"] = session_id
     result["meta"]["input_file"] = str(file_path)
+    result["meta"]["filename"] = Path(file_path).name
     result["meta"]["pipeline_variant"] = variant
-    result["meta"]["transcription_source"] = "crisper_whisper"
+    result["meta"]["transcription_source"] = "crisper_whisper" if variant in ("text_only", "multimodal") else None
 
     return result

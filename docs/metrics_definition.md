@@ -5,6 +5,11 @@
 - ClarityScore (0–100)
 - EngagementScore (0–100)
 
+These scores are produced in [app/scoring/scoring_v1.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/scoring/scoring_v1.py).
+The implementation uses weighted evidence from the available modalities and
+shrinks partial-modality scores toward a neutral midpoint rather than
+over-rewarding missing evidence.
+
 ## Bands
 - 0–39: Needs improvement
 - 40–69: Developing
@@ -16,19 +21,31 @@
 - pause_count: number of pauses detected
 - mean_pause_sec: mean pause duration in seconds
 - total_pause_sec: total pause time in seconds
+- pause_rate_per_min: pause_count normalised by speech duration
+- pause_ratio: total_pause_sec / duration_sec
 - energy_mean: mean short-time energy proxy
 - pitch_mean_hz: mean pitch estimate in Hz
 - pitch_std_hz: pitch variation in Hz
-- emotion: distribution over emotion labels
+- emotion: optional output from the auxiliary CNN-BiLSTM emotion model
 
 ## Text metrics
 - transcript: speech-to-text output
-- word_count: number of words in transcript
-- filler_count: number of filler words detected
-- filler_rate_per_100w: (filler_count / word_count) * 100
-- repeat_rate: proportion of repeated words/phrases (definition to be implemented)
-- readability_proxy: simple readability score (definition to be implemented)
-- sentiment: polarity [-1, 1] and subjectivity [0, 1] if available
+- raw_word_count: number of words in the raw transcript
+- clean_word_count: number of words in the cleaned transcript
+- filler_count: number of filler words and bracketed disfluency markers detected
+- disfluency_count: explicit CrisperWhisper disfluency markers such as `[UH]`, `[UM]`
+- filler_rate_per_100w: `(filler_count / clean_word_count) * 100`
+- repeat_rate: adjacent repetition rate on cleaned text, excluding filler-only repeats
+- readability_proxy: 0-100 spoken readability proxy based on average clause length
+
+## Scoring formulas
+- Confidence: weighted combination of filler score, repetition score, mean pause score, speech-rate score, and optional emotion-confidence score.
+- Clarity: weighted combination of readability, filler score, repetition score, speech-rate score, and mean pause score.
+- Engagement: weighted combination of pitch variation, energy, speech-rate score, pause-rate score, and optional emotion-engagement score.
+
+The exact feature weights and band thresholds are defined in
+[app/scoring/scoring_v1.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/scoring/scoring_v1.py)
+and [app/contracts/constants.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/contracts/constants.py).
 
 ## Output contract
 The system returns a JSON object that conforms to schema/output_schema_v1.json.

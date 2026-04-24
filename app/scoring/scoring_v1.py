@@ -5,6 +5,33 @@ from typing import Dict, Iterable, Optional, Tuple
 from app.contracts.constants import BANDS
 
 
+# These weights are part of the dissertation-facing scoring design.
+# Keeping them as named constants makes the formulas easier to cite and review.
+CONFIDENCE_WEIGHTS = {
+    "filler_score": 0.40,
+    "repeat_score": 0.25,
+    "mean_pause_score": 0.20,
+    "wpm_score": 0.15,
+    "emotion_confidence_score": 0.10,
+}
+
+CLARITY_WEIGHTS = {
+    "readability_score": 0.35,
+    "filler_score": 0.25,
+    "repeat_score": 0.15,
+    "wpm_score": 0.15,
+    "mean_pause_score": 0.10,
+}
+
+ENGAGEMENT_WEIGHTS = {
+    "pitch_var_score": 0.40,
+    "energy_score": 0.30,
+    "wpm_score": 0.20,
+    "pause_rate_score": 0.10,
+    "emotion_engagement_score": 0.10,
+}
+
+
 def band_for(score: float) -> str:
     s = int(round(score))
     s = max(0, min(100, s))
@@ -196,31 +223,38 @@ def scoring_v1(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
 
     # --- Headline scores (asymmetric evidence-based weights) ---
     # CONFIDENCE: text-led (0.65T 0.35S)
-    confidence = coverage_adjusted_score([
-        (0.40, filler_score),      # text: strongest confidence signal
-        (0.25, repeat_score),      # text: repetition hurts confidence
-        (0.20, mean_pause_score),  # speech: hesitation
-        (0.15, wpm_score),         # shared
-    ] + [(0.10, emotion_confidence_score)] if emotion_confidence_score else [])
+    confidence_items = [
+        (CONFIDENCE_WEIGHTS["filler_score"], filler_score),
+        (CONFIDENCE_WEIGHTS["repeat_score"], repeat_score),
+        (CONFIDENCE_WEIGHTS["mean_pause_score"], mean_pause_score),
+        (CONFIDENCE_WEIGHTS["wpm_score"], wpm_score),
+    ]
+    if emotion_confidence_score is not None:
+        confidence_items.append(
+            (CONFIDENCE_WEIGHTS["emotion_confidence_score"], emotion_confidence_score)
+        )
+    confidence = coverage_adjusted_score(confidence_items)
 
     # CLARITY: text-led (0.70T 0.30S)
     clarity = coverage_adjusted_score([
-        (0.35, readability_score), # text: structure
-        (0.25, filler_score),      # text: clean delivery
-        (0.15, repeat_score),      # text: no redundancy
-        (0.15, wpm_score),         # shared
-        (0.10, mean_pause_score),  # speech
+        (CLARITY_WEIGHTS["readability_score"], readability_score),
+        (CLARITY_WEIGHTS["filler_score"], filler_score),
+        (CLARITY_WEIGHTS["repeat_score"], repeat_score),
+        (CLARITY_WEIGHTS["wpm_score"], wpm_score),
+        (CLARITY_WEIGHTS["mean_pause_score"], mean_pause_score),
     ])
 
     # ENGAGEMENT: speech-led (0.85S 0.15T/shared)
     engagement_items = [
-        (0.40, pitch_var_score),   # speech: prosody
-        (0.30, energy_score),      # speech: energy
-        (0.20, wpm_score),         # shared: pacing
-        (0.10, pause_rate_score),  # speech
+        (ENGAGEMENT_WEIGHTS["pitch_var_score"], pitch_var_score),
+        (ENGAGEMENT_WEIGHTS["energy_score"], energy_score),
+        (ENGAGEMENT_WEIGHTS["wpm_score"], wpm_score),
+        (ENGAGEMENT_WEIGHTS["pause_rate_score"], pause_rate_score),
     ]
-    if emotion_engagement_score:
-        engagement_items.append((0.10, emotion_engagement_score))
+    if emotion_engagement_score is not None:
+        engagement_items.append(
+            (ENGAGEMENT_WEIGHTS["emotion_engagement_score"], emotion_engagement_score)
+        )
     engagement = coverage_adjusted_score(engagement_items)
 
     confidence = clamp_0_100(confidence)

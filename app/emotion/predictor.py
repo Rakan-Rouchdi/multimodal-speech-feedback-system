@@ -35,8 +35,8 @@ def extract_features(y: np.ndarray, sr: int, max_len: int = MAX_LEN) -> Optional
     """
     Extract time-series features from a waveform for the CNN+BiLSTM model.
 
-    Produces a (max_len, 40) matrix:
-      13 MFCCs + 13 deltas + 13 delta2s + 1 ZCR + 12 chroma + 1 RMSE = 40
+    Produces a (max_len, 53) matrix:
+      13 MFCCs + 13 deltas + 13 delta2s + 1 ZCR + 12 chroma + 1 RMSE = 53
 
     Replicates the feature extraction from ``app/VoiceModel/app.py`` and
     the Training notebook exactly.
@@ -51,7 +51,7 @@ def extract_features(y: np.ndarray, sr: int, max_len: int = MAX_LEN) -> Optional
         chroma = librosa.feature.chroma_stft(y=y_trimmed, sr=sr)
         rmse = librosa.feature.rms(y=y_trimmed)
 
-        features = np.vstack([mfcc, delta, delta2, zcr, chroma, rmse]).T  # (time, 40)
+        features = np.vstack([mfcc, delta, delta2, zcr, chroma, rmse]).T  # (time, 53)
 
         if features.shape[0] < max_len:
             pad_width = max_len - features.shape[0]
