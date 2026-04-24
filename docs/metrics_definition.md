@@ -1,11 +1,11 @@
-# Metrics and scoring definitions (v1)
+# Metrics and scoring definitions
 
 ## Headline scores (0–100)
 - ConfidenceScore (0–100)
 - ClarityScore (0–100)
 - EngagementScore (0–100)
 
-These scores are produced in [app/scoring/scoring_v1.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/scoring/scoring_v1.py).
+These scores are produced in [app/scoring/scoring.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/scoring/scoring.py).
 The implementation uses weighted evidence from the available modalities and
 shrinks partial-modality scores toward a neutral midpoint rather than
 over-rewarding missing evidence.
@@ -44,11 +44,11 @@ over-rewarding missing evidence.
 - Engagement: weighted combination of pitch variation, energy, speech-rate score, pause-rate score, and optional emotion-engagement score.
 
 The exact feature weights and band thresholds are defined in
-[app/scoring/scoring_v1.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/scoring/scoring_v1.py)
+[app/scoring/scoring.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/scoring/scoring.py)
 and [app/contracts/constants.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/contracts/constants.py).
 
 ## Output contract
-The system returns a JSON object that conforms to schema/output_schema_v1.json.
+The system returns a JSON object that conforms to schema/output_schema.json.
 Fields may be null depending on pipeline variant:
 - speech_only: text_metrics may be null
 - text_only: speech_metrics may be null

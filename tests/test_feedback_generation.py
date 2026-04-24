@@ -1,8 +1,8 @@
-from app.feedback.generator_v1 import generate_feedback_v1
+from app.feedback.generator import generate_feedback
 
 
 def test_low_clarity_triggers_clarity_feedback():
-    feedback = generate_feedback_v1(
+    feedback = generate_feedback(
         scores={
             "confidence": 52.0,
             "clarity": 22.0,

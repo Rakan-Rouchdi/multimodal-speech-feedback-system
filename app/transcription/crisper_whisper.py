@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import re
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
 
 from faster_whisper import WhisperModel
 
-from app.transcription.whisper_transcribe import TranscriptionResult
+from app.transcription.types import TranscriptionResult
 
 
 # ── CrisperWhisper model config ──────────────────────────────────────────────
@@ -16,8 +16,8 @@ CPU_THREADS = 10
 
 def clean_transcript(raw: str) -> str:
     """Normalise CrisperWhisper raw transcript for NLP metrics."""
-    # Replace commas used as word separators with spaces
-    text = re.sub(r',(?![^\s])', ' ', raw)
+    # CrisperWhisper often uses commas as word separators in disfluent speech.
+    text = raw.replace(",", " ")
     # Lowercase bracket tokens [UH] -> uh, [UM] -> um
     text = re.sub(r'\[([A-Z]+)\]', lambda m: m.group(1).lower(), text)
     # Remove broken stub tokens: standalone A., S., Oh. etc. (but keep Mr., Dr.)
@@ -33,10 +33,9 @@ class CrisperWhisperTranscriber:
     """
     Local transcription using faster_CrisperWhisper (CTranslate2 int8).
 
-    Key difference from LocalWhisperTranscriber:
-    - Uses the CrisperWhisper model which transcribes disfluencies as [UH], [UM], etc.
+    Key behaviour:
+    - Uses only the CrisperWhisper model which transcribes disfluencies as [UH], [UM], etc.
     - Produces word-level timestamps for richer analysis.
-    - Same interface as LocalWhisperTranscriber for drop-in replacement.
     """
 
     def __init__(
@@ -62,7 +61,7 @@ class CrisperWhisperTranscriber:
         Transcribe an audio file and return a TranscriptionResult.
 
         CrisperWhisper captures disfluencies ([UH], [UM]) and provides
-        word-level timestamps — both missing from vanilla Whisper.
+        word-level timestamps for downstream speech and text analysis.
         """
         segments, info = self.model.transcribe(
             audio_path,

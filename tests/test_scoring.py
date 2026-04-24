@@ -1,8 +1,8 @@
-from app.scoring.scoring_v1 import band_for, scoring_v1
+from app.scoring.scoring import band_for, scoring
 
 
 def test_scoring_returns_values_between_0_and_100():
-    result = scoring_v1(
+    result = scoring(
         speech={
             "available": True,
             "speech_rate_wpm": 145.0,

@@ -8,7 +8,7 @@ def _add_if(items: List[str], condition: bool, text: str):
         items.append(text)
 
 
-def generate_feedback_v1(scores: Dict, speech: Dict, text: Dict, subscores: Dict) -> Dict:
+def generate_feedback(scores: Dict, speech: Dict, text: Dict, subscores: Dict) -> Dict:
     """
     Deterministic feedback rules based on metrics and score bands.
     Returns: {summary: str, bullets: [str], next_practice: [str]}

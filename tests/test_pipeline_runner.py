@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from app.pipeline import runner
-from app.transcription.whisper_transcribe import TranscriptionResult
+from app.transcription.types import TranscriptionResult
 
 
 def _stub_transcription(*args, **kwargs) -> TranscriptionResult:
@@ -18,9 +18,18 @@ def _stub_transcription(*args, **kwargs) -> TranscriptionResult:
     )
 
 
+class StubCrisperWhisperTranscriber:
+    def __init__(self):
+        self.calls = []
+
+    def transcribe(self, file_path: str) -> TranscriptionResult:
+        self.calls.append(file_path)
+        return _stub_transcription()
+
+
 def test_pipeline_variants_run_with_expected_modules(monkeypatch, synthetic_speech_wav: Path):
-    monkeypatch.setattr(runner, "get_or_transcribe", lambda *args, **kwargs: _stub_transcription())
-    monkeypatch.setattr(runner, "get_transcriber", lambda: object())
+    transcriber = StubCrisperWhisperTranscriber()
+    monkeypatch.setattr(runner, "get_transcriber", lambda: transcriber)
 
     speech_only = runner.run_pipeline(str(synthetic_speech_wav), "speech_only")
     assert speech_only["speech_metrics"] is not None
@@ -35,6 +44,7 @@ def test_pipeline_variants_run_with_expected_modules(monkeypatch, synthetic_spee
     assert multimodal["speech_metrics"] is not None
     assert multimodal["text_metrics"] is not None
     assert multimodal["meta"]["pipeline_variant"] == "multimodal"
+    assert transcriber.calls == [str(synthetic_speech_wav), str(synthetic_speech_wav)]
 
 
 def test_pipeline_invalid_variant_fails_clearly(synthetic_speech_wav: Path):
@@ -43,8 +53,8 @@ def test_pipeline_invalid_variant_fails_clearly(synthetic_speech_wav: Path):
 
 
 def test_pipeline_output_contains_expected_logging_fields(monkeypatch, synthetic_speech_wav: Path):
-    monkeypatch.setattr(runner, "get_or_transcribe", lambda *args, **kwargs: _stub_transcription())
-    monkeypatch.setattr(runner, "get_transcriber", lambda: object())
+    transcriber = StubCrisperWhisperTranscriber()
+    monkeypatch.setattr(runner, "get_transcriber", lambda: transcriber)
     monkeypatch.setattr(
         runner,
         "predict_emotion",
@@ -59,6 +69,10 @@ def test_pipeline_output_contains_expected_logging_fields(monkeypatch, synthetic
     assert result["acoustic_features"] == result["speech_metrics"]
     assert result["text_features"] == result["text_metrics"]
     assert result["emotion_output"]["top_label"] == "calm"
+    assert result["meta"]["transcription_source"] == "crisper_whisper"
+    assert result["meta"]["transcription_cache_enabled"] is False
+    assert result["meta"]["transcription_cache_hit"] is False
+    assert transcriber.calls == [str(synthetic_speech_wav)]
     assert 0 <= result["confidence_score"] <= 100
     assert 0 <= result["clarity_score"] <= 100
     assert 0 <= result["engagement_score"] <= 100
@@ -66,8 +80,7 @@ def test_pipeline_output_contains_expected_logging_fields(monkeypatch, synthetic
 
 
 def test_valid_audio_input_returns_all_three_scores(monkeypatch, synthetic_speech_wav: Path):
-    monkeypatch.setattr(runner, "get_or_transcribe", lambda *args, **kwargs: _stub_transcription())
-    monkeypatch.setattr(runner, "get_transcriber", lambda: object())
+    monkeypatch.setattr(runner, "get_transcriber", lambda: StubCrisperWhisperTranscriber())
 
     result = runner.run_pipeline(str(synthetic_speech_wav), "multimodal")
 
@@ -75,12 +88,34 @@ def test_valid_audio_input_returns_all_three_scores(monkeypatch, synthetic_speec
     assert set(("confidence", "clarity", "engagement")).issubset(scores)
 
 
+def test_pipeline_can_use_transcription_cache(monkeypatch, synthetic_speech_wav: Path, tmp_path: Path):
+    transcriber = StubCrisperWhisperTranscriber()
+    monkeypatch.setattr(runner, "get_transcriber", lambda: transcriber)
+    cache_path = tmp_path / "transcriptions.json"
+
+    first = runner.run_pipeline(
+        str(synthetic_speech_wav),
+        "text_only",
+        use_transcription_cache=True,
+        transcription_cache_path=cache_path,
+    )
+    second = runner.run_pipeline(
+        str(synthetic_speech_wav),
+        "text_only",
+        use_transcription_cache=True,
+        transcription_cache_path=cache_path,
+    )
+
+    assert first["meta"]["transcription_cache_hit"] is False
+    assert second["meta"]["transcription_cache_hit"] is True
+    assert transcriber.calls == [str(synthetic_speech_wav)]
+
+
 @pytest.mark.integration
 def test_integration_pipeline_json_save(monkeypatch, synthetic_speech_wav: Path, tmp_path: Path):
     from app.output.save_json import save_result_json
 
-    monkeypatch.setattr(runner, "get_or_transcribe", lambda *args, **kwargs: _stub_transcription())
-    monkeypatch.setattr(runner, "get_transcriber", lambda: object())
+    monkeypatch.setattr(runner, "get_transcriber", lambda: StubCrisperWhisperTranscriber())
 
     result = runner.run_pipeline(str(synthetic_speech_wav), "multimodal")
     saved_path = save_result_json(result, base_outputs_dir=str(tmp_path))

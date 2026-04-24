@@ -1,4 +1,4 @@
-from app.scoring.scoring_v1 import band_for
+from app.scoring.scoring import band_for
 
 
 def test_band_for_boundaries():

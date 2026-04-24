@@ -1,0 +1,67 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+from app.pipeline.runner import run_pipeline
+from app.transcription.crisper_whisper import CrisperWhisperTranscriber, clean_transcript
+
+
+class FakeCrisperWhisperModel:
+    def transcribe(self, audio_path, **kwargs):
+        assert kwargs["word_timestamps"] is True
+        assert kwargs["vad_filter"] is True
+        assert kwargs["language"] == "en"
+
+        words = [
+            SimpleNamespace(word=" Hello", start=0.1, end=0.4),
+            SimpleNamespace(word=",world", start=0.4, end=0.8),
+            SimpleNamespace(word=" [UH]", start=0.8, end=1.0),
+        ]
+        segments = [
+            SimpleNamespace(start=0.1, end=1.0, text="Hello,world [UH]", words=words),
+        ]
+        info = SimpleNamespace(language="en")
+        return segments, info
+
+
+def test_clean_transcript_preserves_crisperwhisper_disfluencies_as_words():
+    assert clean_transcript("Hello,[UH],this,is,[UM],fine.") == "Hello uh this is um fine."
+
+
+def test_crisper_whisper_adapter_returns_segments_and_word_timestamps():
+    transcriber = CrisperWhisperTranscriber.__new__(CrisperWhisperTranscriber)
+    transcriber.model = FakeCrisperWhisperModel()
+
+    result = transcriber.transcribe("dummy.wav")
+
+    assert result.language == "en"
+    assert result.transcript == "Hello,world [UH]"
+    assert result.clean_text == "Hello world uh"
+    assert result.segments == [{"start": 0.1, "end": 1.0, "text": "Hello,world [UH]"}]
+    assert result.words == [
+        {"text": "Hello", "start_s": 0.1, "end_s": 0.4},
+        {"text": "world", "start_s": 0.4, "end_s": 0.8},
+        {"text": "[UH]", "start_s": 0.8, "end_s": 1.0},
+    ]
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(
+    os.environ.get("RUN_CRISPERWHISPER_INTEGRATION") != "1",
+    reason="Set RUN_CRISPERWHISPER_INTEGRATION=1 to run the real CrisperWhisper model on data/test.wav.",
+)
+def test_real_crisperwhisper_pipeline_on_test_wav_without_cache():
+    audio_path = Path("data/test.wav")
+    assert audio_path.exists()
+
+    result = run_pipeline(str(audio_path), variant="multimodal")
+
+    assert result["meta"]["transcription_source"] == "crisper_whisper"
+    assert result["transcript"]
+    assert result["text_metrics"]["clean_word_count"] > 0
+    assert "transcription" in result["latency_timings"]
+    assert 0 <= result["scores"]["confidence"] <= 100

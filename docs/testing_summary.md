@@ -35,7 +35,21 @@ pytest -v
   - verifies `speech_only`, `text_only`, and `multimodal` variants enable the expected modules
   - verifies invalid variants fail with a clear error
   - verifies pipeline results contain required scores, logging fields, and JSON save support
-  - includes an integration-style test for a full pipeline run on a synthetic local WAV fixture
+  - includes an integration-style test for a pipeline run on a synthetic local WAV fixture
+  - verifies text-enabled variants call the CrisperWhisper transcriber directly by default
+  - verifies the optional CrisperWhisper transcription cache can be enabled safely
+
+- [tests/test_crisper_whisper.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_crisper_whisper.py)
+  - verifies CrisperWhisper transcript cleaning
+  - verifies segment and word timestamp extraction from the faster-whisper response shape
+  - includes an optional real-model integration test for [data/test.wav](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/data/test.wav)
+
+- [tests/test_transcription_cache.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_transcription_cache.py)
+  - verifies cached CrisperWhisper transcriptions are reused after a first run
+  - verifies incomplete cache entries without word timestamps are rejected and refreshed
+
+- [tests/test_emotion_features.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_emotion_features.py)
+  - verifies auxiliary emotion feature extraction returns the trained model input shape
 
 ## Test categories
 
@@ -48,7 +62,8 @@ pytest -v
 - speech-rate helper
 
 ### Integration tests
-- the integration-marked test in [tests/test_pipeline_runner.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_pipeline_runner.py) runs the pipeline end to end on a small synthetic WAV file and verifies result structure and JSON output saving
+- the integration-marked test in [tests/test_pipeline_runner.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_pipeline_runner.py) runs the pipeline on a small synthetic WAV file and verifies result structure and JSON output saving
+- the optional integration test in [tests/test_crisper_whisper.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_crisper_whisper.py) runs the real faster CrisperWhisper model on [data/test.wav](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/data/test.wav)
 
 ### Edge-case tests
 - empty transcript
@@ -57,6 +72,8 @@ pytest -v
 - invalid pipeline variant
 
 ## Known limitations
-- The integration test stubs transcription rather than loading the full CrisperWhisper model, which keeps local validation fast and deterministic.
+- Normal `pytest -v` stubs the heavy model object for speed and determinism, while still asserting that the pipeline calls the CrisperWhisper interface directly by default.
+- The transcription cache is an optional runtime optimisation. It is enabled explicitly for single-file runs and enabled by default for batch evaluation, where repeated runs are expensive.
+- To run the real CrisperWhisper integration test, use `RUN_CRISPERWHISPER_INTEGRATION=1 pytest -v tests/test_crisper_whisper.py`.
 - The optional CNN-BiLSTM emotion model is not exercised in full during automated tests because model loading is comparatively heavy; the pipeline test uses a stubbed emotion output when needed.
 - Acoustic metrics on synthetic WAV fixtures confirm robustness and output structure, but they should not be cited as evidence of real-world model quality.

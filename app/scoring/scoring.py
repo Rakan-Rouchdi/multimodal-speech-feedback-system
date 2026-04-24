@@ -151,7 +151,7 @@ def _emotion_subscore(emotion_data: Optional[Dict], dimension: str) -> Optional[
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def scoring_v1(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
+def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
     """
     Evidence-based asymmetric scoring:
     - confidence: text-led (0.65 text, 0.35 speech)

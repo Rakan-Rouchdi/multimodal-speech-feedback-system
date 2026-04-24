@@ -5,13 +5,13 @@ from typing import Dict, Optional
 
 from app.contracts.constants import PIPELINE_VARIANTS
 from app.audio.preprocessing import preprocess_audio
+from app.transcription.cache import DEFAULT_CACHE_PATH, transcribe_with_cache
 from app.transcription.crisper_whisper import CrisperWhisperTranscriber
-from app.transcription.cache import get_or_transcribe
 from app.text_analysis.metrics import compute_text_metrics
 from app.speech_analysis.metrics import compute_speech_metrics
 from app.speech_analysis.speech_rate import speech_rate_wpm
-from app.scoring.scoring_v1 import scoring_v1
-from app.feedback.generator_v1 import generate_feedback_v1
+from app.scoring.scoring import scoring
+from app.feedback.generator import generate_feedback
 from app.output.result_builder import build_result
 from app.emotion.predictor import predict_emotion
 from app.utils.timing import Timer
@@ -22,8 +22,10 @@ _TRANSCRIBER: Optional[CrisperWhisperTranscriber] = None
 
 def get_transcriber() -> CrisperWhisperTranscriber:
     """
-    Cache the CrisperWhisper transcriber so the model is not reloaded
-    for every file.
+    Reuse the loaded CrisperWhisper model object in memory.
+
+    This is not a transcription-result cache: every text-enabled pipeline run
+    still transcribes the current audio file directly.
     """
     global _TRANSCRIBER
     if _TRANSCRIBER is None:
@@ -31,7 +33,13 @@ def get_transcriber() -> CrisperWhisperTranscriber:
     return _TRANSCRIBER
 
 
-def run_pipeline(file_path: str, variant: str = "multimodal", use_emotion: bool = False) -> Dict:
+def run_pipeline(
+    file_path: str,
+    variant: str = "multimodal",
+    use_emotion: bool = False,
+    use_transcription_cache: bool = False,
+    transcription_cache_path: str | Path = DEFAULT_CACHE_PATH,
+) -> Dict:
     """
     Runs the system in one of three modes:
       - speech_only: compute only speech metrics
@@ -65,12 +73,21 @@ def run_pipeline(file_path: str, variant: str = "multimodal", use_emotion: bool 
     # --- Transcription + text metrics ---
     text_metrics: Optional[Dict] = None
     transcript = ""
+    transcription_cache_hit: Optional[bool] = None
 
     if variant in ("text_only", "multimodal"):
         transcriber = get_transcriber()
 
         with timer.track("transcription"):
-            result = get_or_transcribe(file_path, transcriber)
+            if use_transcription_cache:
+                result, transcription_cache_hit = transcribe_with_cache(
+                    file_path,
+                    transcriber,
+                    cache_path=Path(transcription_cache_path),
+                )
+            else:
+                result = transcriber.transcribe(file_path)
+                transcription_cache_hit = False
 
         transcript = result.transcript
 
@@ -135,11 +152,11 @@ def run_pipeline(file_path: str, variant: str = "multimodal", use_emotion: bool 
 
     # --- Scoring / fusion ---
     with timer.track("fusion"):
-        score_out = scoring_v1(speech=score_speech, text=score_text, use_emotion=use_emotion)
+        score_out = scoring(speech=score_speech, text=score_text, use_emotion=use_emotion)
 
     # --- Feedback ---
     with timer.track("feedback"):
-        feedback = generate_feedback_v1(
+        feedback = generate_feedback(
             scores=score_out["scores"],
             speech=safe_speech,
             text=safe_text,
@@ -184,5 +201,9 @@ def run_pipeline(file_path: str, variant: str = "multimodal", use_emotion: bool 
     result["meta"]["filename"] = Path(file_path).name
     result["meta"]["pipeline_variant"] = variant
     result["meta"]["transcription_source"] = "crisper_whisper" if variant in ("text_only", "multimodal") else None
+    result["meta"]["transcription_cache_enabled"] = (
+        bool(use_transcription_cache) if variant in ("text_only", "multimodal") else False
+    )
+    result["meta"]["transcription_cache_hit"] = transcription_cache_hit
 
     return result

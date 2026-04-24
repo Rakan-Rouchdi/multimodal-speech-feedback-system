@@ -62,18 +62,20 @@ def flatten_result(file_path: Path, result: Dict) -> Dict:
         "pitch_std_hz": speech.get("pitch_std_hz"),
         "energy_mean": speech.get("energy_mean"),
 
-        "word_count": text.get("word_count"),
+        "word_count": text.get("clean_word_count"),
         "filler_rate_per_100w": text.get("filler_rate_per_100w"),
         "repeat_rate": text.get("repeat_rate"),
-    "readability_proxy": text.get("readability_proxy"),
-    "filler_count": text.get("filler_count"),
-    "disfluency_count": text.get("disfluency_count"),
-    "raw_word_count": text.get("raw_word_count"),
-    "clean_word_count": text.get("clean_word_count"),
-    "transcription_source": result["meta"].get("transcription_source"),
+        "readability_proxy": text.get("readability_proxy"),
+        "filler_count": text.get("filler_count"),
+        "disfluency_count": text.get("disfluency_count"),
+        "raw_word_count": text.get("raw_word_count"),
+        "clean_word_count": text.get("clean_word_count"),
+        "transcription_source": result["meta"].get("transcription_source"),
+        "transcription_cache_enabled": result["meta"].get("transcription_cache_enabled"),
+        "transcription_cache_hit": result["meta"].get("transcription_cache_hit"),
 
-    # Emotion
-    "emotion_top": speech.get("emotion", {}).get("top_label") if isinstance(speech.get("emotion"), dict) else None,
+        # Emotion
+        "emotion_top": speech.get("emotion", {}).get("top_label") if isinstance(speech.get("emotion"), dict) else None,
     }
     return row
 
@@ -85,6 +87,24 @@ def main():
     parser.add_argument("--save_json", action="store_true", help="Also save each full JSON output into outputs/")
     parser.add_argument("--use_emotion", action="store_true", help="Enable emotion analysis (default: off)")
     parser.add_argument("--limit", type=int, default=0, help="Limit number of audio files (0 = no limit)")
+    parser.add_argument(
+        "--variants",
+        nargs="+",
+        default=["multimodal"],
+        choices=[*VARIANTS, "all"],
+        help="Pipeline variants to run. Default: multimodal. Use 'all' for comparison runs.",
+    )
+    parser.add_argument(
+        "--no_transcription_cache",
+        action="store_true",
+        help="Disable the CrisperWhisper transcription cache during batch runs.",
+    )
+    parser.add_argument(
+        "--transcription-cache-path",
+        type=str,
+        default="outputs/cache/crisperwhisper_transcriptions.json",
+        help="Path to the CrisperWhisper transcription cache used by batch runs.",
+    )
     args = parser.parse_args()
 
     audio_files = find_audio_files(args.data_dir)
@@ -98,10 +118,24 @@ def main():
     Path(args.out_csv).parent.mkdir(parents=True, exist_ok=True)
 
     use_emotion = args.use_emotion
+    variants = VARIANTS if "all" in args.variants else args.variants
+    use_transcription_cache = not args.no_transcription_cache
+
+    if len(set(variants) & {"text_only", "multimodal"}) > 1 and not use_transcription_cache:
+        print(
+            "Note: text_only and multimodal both run CrisperWhisper. "
+            "With transcription caching disabled, each file will be transcribed once per text-enabled variant."
+        )
 
     for f in audio_files:
-        for variant in VARIANTS:
-            result = run_pipeline(str(f), variant, use_emotion=use_emotion)
+        for variant in variants:
+            result = run_pipeline(
+                str(f),
+                variant,
+                use_emotion=use_emotion,
+                use_transcription_cache=use_transcription_cache,
+                transcription_cache_path=args.transcription_cache_path,
+            )
 
             if args.save_json:
                 save_result_json(result, base_outputs_dir="outputs")

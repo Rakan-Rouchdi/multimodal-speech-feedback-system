@@ -35,6 +35,17 @@ def build_parser() -> argparse.ArgumentParser:
         default="outputs",
         help="Base directory where result JSON files will be saved.",
     )
+    parser.add_argument(
+        "--use_transcription_cache",
+        action="store_true",
+        help="Reuse cached CrisperWhisper transcriptions when valid word timestamps are available.",
+    )
+    parser.add_argument(
+        "--transcription-cache-path",
+        type=str,
+        default="outputs/cache/crisperwhisper_transcriptions.json",
+        help="Path to the optional CrisperWhisper transcription cache.",
+    )
     return parser
 
 
@@ -46,7 +57,13 @@ def main() -> int:
     if not audio_path.exists():
         parser.error(f"Audio file not found: {audio_path}")
 
-    result_json = run_pipeline(str(audio_path), args.variant, use_emotion=args.use_emotion)
+    result_json = run_pipeline(
+        str(audio_path),
+        args.variant,
+        use_emotion=args.use_emotion,
+        use_transcription_cache=args.use_transcription_cache,
+        transcription_cache_path=args.transcription_cache_path,
+    )
     saved_path = save_result_json(
         result_json,
         base_outputs_dir=args.output_dir,

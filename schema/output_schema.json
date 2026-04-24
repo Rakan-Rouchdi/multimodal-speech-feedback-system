@@ -11,7 +11,9 @@
       "source": "upload|recording"
     },
     "pipeline_variant": "speech_only|text_only|multimodal",
-    "transcription_source": "crisper_whisper|null"
+    "transcription_source": "crisper_whisper|null",
+    "transcription_cache_enabled": false,
+    "transcription_cache_hit": false
   },
   "filename": "S01_T1.wav",
   "variant": "multimodal",
