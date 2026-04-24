@@ -8,26 +8,31 @@ from app.contracts.constants import BANDS
 # These weights are part of the dissertation-facing scoring design.
 # Keeping them as named constants makes the formulas easier to cite and review.
 CONFIDENCE_WEIGHTS = {
-    "filler_score": 0.40,
+    "filler_score": 0.35,
     "repeat_score": 0.25,
-    "mean_pause_score": 0.20,
-    "wpm_score": 0.15,
+    "energy_score": 0.15,
+    "pitch_var_score": 0.05,
+    "mean_pause_score": 0.10,
+    "wpm_score": 0.10,
     "emotion_confidence_score": 0.10,
 }
 
 CLARITY_WEIGHTS = {
-    "readability_score": 0.35,
-    "filler_score": 0.25,
-    "repeat_score": 0.15,
-    "wpm_score": 0.15,
+    "filler_score": 0.40,
+    "repeat_score": 0.25,
+    "energy_score": 0.15,
+    "readability_score": 0.05,
     "mean_pause_score": 0.10,
+    "wpm_score": 0.05,
 }
 
 ENGAGEMENT_WEIGHTS = {
-    "pitch_var_score": 0.40,
-    "energy_score": 0.30,
-    "wpm_score": 0.20,
-    "pause_rate_score": 0.10,
+    "energy_score": 0.25,
+    "pitch_var_score": 0.15,
+    "filler_score": 0.25,
+    "repeat_score": 0.20,
+    "wpm_score": 0.10,
+    "mean_pause_score": 0.05,
     "emotion_engagement_score": 0.10,
 }
 
@@ -185,7 +190,7 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
     # --- Subscores ---
     wpm_score = score_from_range(wpm, ideal_min=120, ideal_max=165, hard_min=85, hard_max=210) if (wpm is not None and wpm > 0) else None
 
-    filler_score = score_lower_better(filler, ideal_max=1.0, hard_max=8.0) if filler is not None else None
+    filler_score = score_lower_better(filler, ideal_max=1.0, hard_max=6.0) if filler is not None else None
 
     # assumes adjacent repetition rate from improved text metrics
     repeat_score = score_lower_better(repeat, ideal_max=0.03, hard_max=0.25) if repeat is not None else None
@@ -193,7 +198,7 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
     readability_score = clamp_0_100(readability) if readability is not None else None
 
     pitch_var_score = (
-        score_from_range(pitch_std, ideal_min=18, ideal_max=60, hard_min=5, hard_max=120)
+        score_from_range(pitch_std, ideal_min=10, ideal_max=25, hard_min=3, hard_max=65)
         if pitch_std is not None else None
     )
 
@@ -213,7 +218,7 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
     )
 
     energy_score = (
-        score_from_range(energy, ideal_min=0.025, ideal_max=0.08, hard_min=0.005, hard_max=0.14)
+        score_from_range(energy, ideal_min=0.035, ideal_max=0.12, hard_min=0.003, hard_max=0.18)
         if energy is not None else None
     )
 
@@ -226,6 +231,8 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
     confidence_items = [
         (CONFIDENCE_WEIGHTS["filler_score"], filler_score),
         (CONFIDENCE_WEIGHTS["repeat_score"], repeat_score),
+        (CONFIDENCE_WEIGHTS["energy_score"], energy_score),
+        (CONFIDENCE_WEIGHTS["pitch_var_score"], pitch_var_score),
         (CONFIDENCE_WEIGHTS["mean_pause_score"], mean_pause_score),
         (CONFIDENCE_WEIGHTS["wpm_score"], wpm_score),
     ]
@@ -240,22 +247,39 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
         (CLARITY_WEIGHTS["readability_score"], readability_score),
         (CLARITY_WEIGHTS["filler_score"], filler_score),
         (CLARITY_WEIGHTS["repeat_score"], repeat_score),
-        (CLARITY_WEIGHTS["wpm_score"], wpm_score),
+        (CLARITY_WEIGHTS["energy_score"], energy_score),
         (CLARITY_WEIGHTS["mean_pause_score"], mean_pause_score),
+        (CLARITY_WEIGHTS["wpm_score"], wpm_score),
     ])
 
     # ENGAGEMENT: speech-led (0.85S 0.15T/shared)
     engagement_items = [
         (ENGAGEMENT_WEIGHTS["pitch_var_score"], pitch_var_score),
         (ENGAGEMENT_WEIGHTS["energy_score"], energy_score),
+        (ENGAGEMENT_WEIGHTS["filler_score"], filler_score),
+        (ENGAGEMENT_WEIGHTS["repeat_score"], repeat_score),
         (ENGAGEMENT_WEIGHTS["wpm_score"], wpm_score),
-        (ENGAGEMENT_WEIGHTS["pause_rate_score"], pause_rate_score),
+        (ENGAGEMENT_WEIGHTS["mean_pause_score"], mean_pause_score),
     ]
     if emotion_engagement_score is not None:
         engagement_items.append(
             (ENGAGEMENT_WEIGHTS["emotion_engagement_score"], emotion_engagement_score)
         )
     engagement = coverage_adjusted_score(engagement_items)
+
+    # In multimodal mode, strong acoustic delivery should not fully mask poor
+    # textual fluency. This small consistency penalty improved alignment with
+    # the human scores for recordings with many fillers or repeated phrasing.
+    if speech_available and text_available:
+        fluency_penalty = 0.0
+        if filler_score is not None:
+            fluency_penalty += 100.0 - filler_score
+        if repeat_score is not None:
+            fluency_penalty += 3.0 * (100.0 - repeat_score)
+
+        confidence -= 0.03 * fluency_penalty
+        clarity -= 0.04 * fluency_penalty
+        engagement -= 0.05 * fluency_penalty
 
     confidence = clamp_0_100(confidence)
     clarity = clamp_0_100(clarity)
