@@ -73,7 +73,7 @@ def main() -> int:
     print("Saved result JSON to:", saved_path)
     print("Variant:", result_json["meta"]["pipeline_variant"])
     print("Scores:", result_json["scores"])
-    print("Latency (ms):", result_json["debug"]["latency_ms"])
+    print("Latency (ms):", result_json["latency_ms"])
     return 0
 
 

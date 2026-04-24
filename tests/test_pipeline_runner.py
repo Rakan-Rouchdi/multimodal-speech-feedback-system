@@ -63,13 +63,10 @@ def test_pipeline_output_contains_expected_logging_fields(monkeypatch, synthetic
 
     result = runner.run_pipeline(str(synthetic_speech_wav), "multimodal", use_emotion=True)
 
-    assert result["filename"] == synthetic_speech_wav.name
-    assert result["variant"] == "multimodal"
+    assert result["meta"]["filename"] == synthetic_speech_wav.name
+    assert result["meta"]["pipeline_variant"] == "multimodal"
     assert result["transcript"] == "I think this is a clear clear answer."
     assert result["raw_transcript"] == "Um I think this is a clear clear answer."
-    assert result["clean_transcript"] == result["transcript"]
-    assert result["acoustic_features"] == result["speech_metrics"]
-    assert result["text_features"] == result["text_metrics"]
     assert result["text_metrics"]["raw_transcript"] == "Um I think this is a clear clear answer."
     assert result["text_metrics"]["clean_transcript"] == "I think this is a clear clear answer."
     assert result["emotion_output"]["top_label"] == "calm"
@@ -77,10 +74,15 @@ def test_pipeline_output_contains_expected_logging_fields(monkeypatch, synthetic
     assert result["meta"]["transcription_cache_enabled"] is False
     assert result["meta"]["transcription_cache_hit"] is False
     assert transcriber.calls == [str(synthetic_speech_wav)]
-    assert 0 <= result["confidence_score"] <= 100
-    assert 0 <= result["clarity_score"] <= 100
-    assert 0 <= result["engagement_score"] <= 100
-    assert "total_runtime" in result["latency_timings"]
+    assert 0 <= result["scores"]["confidence"] <= 100
+    assert 0 <= result["scores"]["clarity"] <= 100
+    assert 0 <= result["scores"]["engagement"] <= 100
+    assert "total" in result["latency_ms"]
+    assert "latency_timings" not in result
+    assert "debug" not in result
+    assert "acoustic_features" not in result
+    assert "text_features" not in result
+    assert "confidence_score" not in result
 
 
 def test_valid_audio_input_returns_all_three_scores(monkeypatch, synthetic_speech_wav: Path):
@@ -125,7 +127,7 @@ def test_integration_pipeline_json_save(monkeypatch, synthetic_speech_wav: Path,
     saved_path = save_result_json(result, base_outputs_dir=str(tmp_path))
 
     assert isinstance(result, dict)
-    assert result["variant"] == "multimodal"
+    assert result["meta"]["pipeline_variant"] == "multimodal"
     assert 0 <= result["scores"]["confidence"] <= 100
     assert 0 <= result["scores"]["clarity"] <= 100
     assert 0 <= result["scores"]["engagement"] <= 100

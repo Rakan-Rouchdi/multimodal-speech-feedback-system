@@ -177,10 +177,6 @@ def run_pipeline(
         "feedback": timer.ms.get("feedback", 0.0),
         "total": timer.ms.get("total", 0.0),
     }
-    latency_ms["preprocessing"] = latency_ms["preprocess"]
-    latency_ms["scoring"] = latency_ms["fusion"]
-    latency_ms["feedback_generation"] = latency_ms["feedback"]
-    latency_ms["total_runtime"] = latency_ms["total"]
 
     # --- Build final result ---
     result = build_result(

@@ -2,7 +2,6 @@
   "meta": {
     "session_id": "string",
     "timestamp_utc": "ISO-8601 string",
-    "timestamp": "ISO-8601 string",
     "filename": "S01_T1.wav",
     "input_file": "data/main_eval/S01_T1.wav",
     "input_audio": {
@@ -15,12 +14,8 @@
     "transcription_cache_enabled": false,
     "transcription_cache_hit": false
   },
-  "filename": "S01_T1.wav",
-  "variant": "multimodal",
-  "timestamp": "ISO-8601 string",
   "transcript": "clean transcript string",
   "raw_transcript": "raw CrisperWhisper transcript string",
-  "clean_transcript": "clean transcript string",
   "emotion_output": {
     "top_label": "string",
     "probabilities": {
@@ -44,14 +39,6 @@
       "engagement": "Needs improvement|Developing|Strong|Excellent"
     }
   },
-  "confidence_score": 0.0,
-  "clarity_score": 0.0,
-  "engagement_score": 0.0,
-  "bands": {
-    "confidence": "Needs improvement|Developing|Strong|Excellent",
-    "clarity": "Needs improvement|Developing|Strong|Excellent",
-    "engagement": "Needs improvement|Developing|Strong|Excellent"
-  },
   "speech_metrics": {
     "energy_mean": 0.0,
     "pause_count": 0,
@@ -63,7 +50,6 @@
     "pause_rate_per_min": 0.0,
     "pause_ratio": 0.0
   },
-  "acoustic_features": "alias of speech_metrics",
   "text_metrics": {
     "transcript": "clean transcript string",
     "raw_transcript": "raw CrisperWhisper transcript string",
@@ -76,28 +62,20 @@
     "repeat_rate": 0.0,
     "readability_proxy": 0.0
   },
-  "text_features": "alias of text_metrics",
   "feedback": {
     "summary": "string",
     "bullets": ["string"],
     "next_practice": ["string"]
   },
-  "latency_timings": {
+  "latency_ms": {
     "preprocess": 0.0,
-    "preprocessing": 0.0,
     "transcription": 0.0,
     "speech_analysis": 0.0,
     "emotion_analysis": 0.0,
     "text_analysis": 0.0,
     "fusion": 0.0,
-    "scoring": 0.0,
     "feedback": 0.0,
-    "feedback_generation": 0.0,
-    "total": 0.0,
-    "total_runtime": 0.0
+    "total": 0.0
   },
-  "debug": {
-    "warnings": ["string"],
-    "latency_ms": "same content as latency_timings"
-  }
+  "warnings": ["string"]
 }

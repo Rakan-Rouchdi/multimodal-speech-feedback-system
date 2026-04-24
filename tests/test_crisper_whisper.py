@@ -116,5 +116,5 @@ def test_real_crisperwhisper_pipeline_on_test_wav_without_cache():
     assert result["meta"]["transcription_source"] == "crisper_whisper"
     assert result["transcript"]
     assert result["text_metrics"]["clean_word_count"] > 0
-    assert "transcription" in result["latency_timings"]
+    assert "transcription" in result["latency_ms"]
     assert 0 <= result["scores"]["confidence"] <= 100

@@ -27,7 +27,7 @@ def flatten_result(file_path: Path, result: Dict) -> Dict:
     scores = result.get("scores", {})
     bands = scores.get("bands", {})
 
-    latency = result.get("debug", {}).get("latency_ms", {})
+    latency = result.get("latency_ms", {})
 
     speech = result.get("speech_metrics") or {}
     text = result.get("text_metrics") or {}
