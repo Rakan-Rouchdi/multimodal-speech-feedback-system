@@ -115,6 +115,21 @@ def generate_feedback_v1(scores: Dict, speech: Dict, text: Dict, subscores: Dict
         )
 
     # If strong across the board, still give value
+    if confidence < 40 and not any("confident" in bullet.lower() or "composed" in bullet.lower() for bullet in bullets):
+        bullets.append(
+            "Your delivery currently reads as hesitant. A steadier pace and cleaner phrasing will help you sound more confident."
+        )
+
+    if clarity < 40 and not any("clear" in bullet.lower() or "sentence" in bullet.lower() for bullet in bullets):
+        bullets.append(
+            "Clarity is the main area to improve. Keep each sentence focused on one idea and leave short pauses between ideas."
+        )
+
+    if engagement < 40 and not any("engage" in bullet.lower() or "energy" in bullet.lower() for bullet in bullets):
+        bullets.append(
+            "Engagement is limited at the moment. More vocal energy and emphasis on key words will help hold attention."
+        )
+
     if not bullets:
         bullets.append("Your delivery is clear and well-paced. Maintain this rhythm and structure.")
         bullets.append("To improve further, add slightly more emphasis on your main message and key words.")
