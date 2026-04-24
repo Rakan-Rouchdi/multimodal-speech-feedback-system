@@ -166,7 +166,9 @@ def compute_text_metrics(transcript: str, clean_text: Optional[str] = None) -> D
     dc = count_disfluencies(transcript)  # raw
     
     return {
-        "transcript": transcript,
+        "transcript": clean_text,
+        "raw_transcript": transcript,
+        "clean_transcript": clean_text,
         "raw_word_count": wc_raw,
         "clean_word_count": wc_clean,
         "filler_count": fc,

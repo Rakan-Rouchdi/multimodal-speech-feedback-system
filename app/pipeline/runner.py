@@ -73,6 +73,7 @@ def run_pipeline(
     # --- Transcription + text metrics ---
     text_metrics: Optional[Dict] = None
     transcript = ""
+    raw_transcript = ""
     transcription_cache_hit: Optional[bool] = None
 
     if variant in ("text_only", "multimodal"):
@@ -89,7 +90,8 @@ def run_pipeline(
                 result = transcriber.transcribe(file_path)
                 transcription_cache_hit = False
 
-        transcript = result.transcript
+        raw_transcript = result.transcript
+        transcript = result.clean_text
 
         with timer.track("text_analysis"):
             text_metrics = compute_text_metrics(result.transcript, result.clean_text)
@@ -191,6 +193,7 @@ def run_pipeline(
         speech_metrics=safe_speech if variant in ("speech_only", "multimodal") else None,
         text_metrics=safe_text if variant in ("text_only", "multimodal") else None,
         transcript=transcript,
+        raw_transcript=raw_transcript,
         emotion_output=emotion_data,
         feedback=feedback,
         latency_ms=latency_ms,

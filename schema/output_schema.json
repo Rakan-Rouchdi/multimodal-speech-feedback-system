@@ -18,7 +18,9 @@
   "filename": "S01_T1.wav",
   "variant": "multimodal",
   "timestamp": "ISO-8601 string",
-  "transcript": "string",
+  "transcript": "clean transcript string",
+  "raw_transcript": "raw CrisperWhisper transcript string",
+  "clean_transcript": "clean transcript string",
   "emotion_output": {
     "top_label": "string",
     "probabilities": {
@@ -63,7 +65,9 @@
   },
   "acoustic_features": "alias of speech_metrics",
   "text_metrics": {
-    "transcript": "string",
+    "transcript": "clean transcript string",
+    "raw_transcript": "raw CrisperWhisper transcript string",
+    "clean_transcript": "clean transcript string",
     "raw_word_count": 0,
     "clean_word_count": 0,
     "filler_count": 0,

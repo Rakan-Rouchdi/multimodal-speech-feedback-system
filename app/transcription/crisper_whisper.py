@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import re
+import wave
 from typing import Dict, List, Optional
 
 from faster_whisper import WhisperModel
@@ -20,8 +22,8 @@ def clean_transcript(raw: str) -> str:
     text = raw.replace(",", " ")
     # Lowercase bracket tokens [UH] -> uh, [UM] -> um
     text = re.sub(r'\[([A-Z]+)\]', lambda m: m.group(1).lower(), text)
-    # Remove broken stub tokens: standalone A., S., Oh. etc. (but keep Mr., Dr.)
-    text = re.sub(r'\b[A-Z][a-z]*\.(?!\s[A-Z][a-z]*\.)', '', text)
+    # Split compact sentence-like ASR output such as Word.Word.Word.
+    text = re.sub(r"(?<=[A-Za-z])\.(?=[A-Z])", " ", text)
     # Collapse multiple spaces, strip
     text = re.sub(r'\s+', ' ', text).strip()
     return text
@@ -52,23 +54,37 @@ class CrisperWhisperTranscriber:
             num_workers=2,
         )
 
-    def transcribe(
+    @staticmethod
+    def _wav_duration(audio_path: str) -> Optional[float]:
+        if not audio_path.lower().endswith(".wav"):
+            return None
+        try:
+            with contextlib.closing(wave.open(audio_path)) as wav_file:
+                return wav_file.getnframes() / wav_file.getframerate()
+        except Exception:
+            return None
+
+    @staticmethod
+    def _looks_incomplete(result: TranscriptionResult, duration_sec: Optional[float]) -> bool:
+        if duration_sec is None or duration_sec < 20:
+            return False
+        if len(result.words) < 20:
+            return True
+        return False
+
+    def _transcribe_once(
         self,
         audio_path: str,
-        language: str = "en",
+        language: str,
+        *,
+        vad_filter: bool,
     ) -> TranscriptionResult:
-        """
-        Transcribe an audio file and return a TranscriptionResult.
-
-        CrisperWhisper captures disfluencies ([UH], [UM]) and provides
-        word-level timestamps for downstream speech and text analysis.
-        """
         segments, info = self.model.transcribe(
             audio_path,
             language=language,
             beam_size=5,
             word_timestamps=True,
-            vad_filter=True,
+            vad_filter=vad_filter,
             vad_parameters=dict(min_silence_duration_ms=300),
         )
 
@@ -98,15 +114,29 @@ class CrisperWhisperTranscriber:
                         })
 
         transcript = " ".join(t for t in transcript_parts if t)
-
         language_detected = getattr(info, "language", None)
-
-        clean_text = clean_transcript(transcript)
 
         return TranscriptionResult(
             transcript=transcript,
             language=language_detected,
             segments=seg_list,
-            clean_text=clean_text,
+            clean_text=clean_transcript(transcript),
             words=word_list,
         )
+
+    def transcribe(
+        self,
+        audio_path: str,
+        language: str = "en",
+    ) -> TranscriptionResult:
+        """
+        Transcribe an audio file and return a TranscriptionResult.
+
+        CrisperWhisper captures disfluencies ([UH], [UM]) and provides
+        word-level timestamps for downstream speech and text analysis.
+        """
+        result = self._transcribe_once(audio_path, language, vad_filter=True)
+        duration_sec = self._wav_duration(audio_path)
+        if self._looks_incomplete(result, duration_sec):
+            result = self._transcribe_once(audio_path, language, vad_filter=False)
+        return result

@@ -65,9 +65,13 @@ def test_pipeline_output_contains_expected_logging_fields(monkeypatch, synthetic
 
     assert result["filename"] == synthetic_speech_wav.name
     assert result["variant"] == "multimodal"
-    assert result["transcript"]
+    assert result["transcript"] == "I think this is a clear clear answer."
+    assert result["raw_transcript"] == "Um I think this is a clear clear answer."
+    assert result["clean_transcript"] == result["transcript"]
     assert result["acoustic_features"] == result["speech_metrics"]
     assert result["text_features"] == result["text_metrics"]
+    assert result["text_metrics"]["raw_transcript"] == "Um I think this is a clear clear answer."
+    assert result["text_metrics"]["clean_transcript"] == "I think this is a clear clear answer."
     assert result["emotion_output"]["top_label"] == "calm"
     assert result["meta"]["transcription_source"] == "crisper_whisper"
     assert result["meta"]["transcription_cache_enabled"] is False

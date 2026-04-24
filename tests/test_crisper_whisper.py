@@ -11,10 +11,13 @@ from app.transcription.crisper_whisper import CrisperWhisperTranscriber, clean_t
 
 
 class FakeCrisperWhisperModel:
+    def __init__(self):
+        self.calls = []
+
     def transcribe(self, audio_path, **kwargs):
         assert kwargs["word_timestamps"] is True
-        assert kwargs["vad_filter"] is True
         assert kwargs["language"] == "en"
+        self.calls.append(kwargs["vad_filter"])
 
         words = [
             SimpleNamespace(word=" Hello", start=0.1, end=0.4),
@@ -28,8 +31,45 @@ class FakeCrisperWhisperModel:
         return segments, info
 
 
+class FallbackCrisperWhisperModel:
+    def __init__(self):
+        self.calls = []
+
+    def transcribe(self, audio_path, **kwargs):
+        self.calls.append(kwargs["vad_filter"])
+        info = SimpleNamespace(language="en")
+        if kwargs["vad_filter"]:
+            return [
+                SimpleNamespace(
+                    start=30.0,
+                    end=31.0,
+                    text="My.",
+                    words=[SimpleNamespace(word=" My.", start=30.0, end=31.0)],
+                )
+            ], info
+
+        words = [
+            SimpleNamespace(word=" My", start=0.0, end=0.2),
+            SimpleNamespace(word=" name", start=0.2, end=0.4),
+            SimpleNamespace(word=" is", start=0.4, end=0.6),
+        ] * 10
+        return [
+            SimpleNamespace(
+                start=0.0,
+                end=35.0,
+                text="My,name,is,a,complete,answer.",
+                words=words,
+            )
+        ], info
+
+
 def test_clean_transcript_preserves_crisperwhisper_disfluencies_as_words():
     assert clean_transcript("Hello,[UH],this,is,[UM],fine.") == "Hello uh this is um fine."
+
+
+def test_clean_transcript_splits_compact_period_separated_words():
+    text = "Hello,my,name's.I'm.Currently,a.Second-year.Student."
+    assert clean_transcript(text) == "Hello my name's I'm Currently a Second-year Student."
 
 
 def test_crisper_whisper_adapter_returns_segments_and_word_timestamps():
@@ -47,6 +87,19 @@ def test_crisper_whisper_adapter_returns_segments_and_word_timestamps():
         {"text": "world", "start_s": 0.4, "end_s": 0.8},
         {"text": "[UH]", "start_s": 0.8, "end_s": 1.0},
     ]
+
+
+def test_crisper_whisper_retries_without_vad_when_long_audio_looks_incomplete(monkeypatch):
+    transcriber = CrisperWhisperTranscriber.__new__(CrisperWhisperTranscriber)
+    model = FallbackCrisperWhisperModel()
+    transcriber.model = model
+    monkeypatch.setattr(transcriber, "_wav_duration", lambda audio_path: 40.0)
+
+    result = transcriber.transcribe("long.wav")
+
+    assert model.calls == [True, False]
+    assert len(result.words) == 30
+    assert result.clean_text == "My name is a complete answer."
 
 
 @pytest.mark.integration

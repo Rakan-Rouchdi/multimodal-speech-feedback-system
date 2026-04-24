@@ -31,3 +31,10 @@ def test_empty_transcript_does_not_crash_text_analysis():
     assert metrics["raw_word_count"] == 0
     assert metrics["clean_word_count"] == 0
     assert metrics["filler_rate_per_100w"] == 0.0
+
+
+def test_compute_text_metrics_exposes_raw_and_clean_transcripts():
+    metrics = compute_text_metrics("Um hello", "hello")
+    assert metrics["transcript"] == "hello"
+    assert metrics["raw_transcript"] == "Um hello"
+    assert metrics["clean_transcript"] == "hello"
