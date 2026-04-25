@@ -37,11 +37,15 @@ over-rewarding missing evidence.
 - filler_rate_per_100w: `(filler_count / clean_word_count) * 100`
 - repeat_rate: adjacent repetition rate on cleaned text, excluding filler-only repeats
 - readability_proxy: 0-100 spoken readability proxy based on average clause length
+- avg_clause_length: average number of words in punctuation-aware ASR-safe chunks; very long chunks are split into 20-word windows when punctuation is missing
+- estimated_clause_count: number of punctuation-aware ASR-safe chunks
+- lexical_diversity: unique cleaned words divided by total cleaned words
 
 ## Scoring formulas
-- Confidence: weighted combination of filler score, repetition score, mean pause score, speech-rate score, and optional emotion-confidence score.
-- Clarity: weighted combination of readability, filler score, repetition score, speech-rate score, and mean pause score.
-- Engagement: weighted combination of pitch variation, energy, speech-rate score, pause-rate score, and optional emotion-engagement score.
+- Confidence: weighted combination of filler score, repetition score, energy, controlled pitch variation, pause timing, speech-rate score, lexical diversity, and optional emotion-confidence score.
+- Clarity: weighted combination of filler score, repetition score, energy, pause ratio, mean pause duration, speech-rate score, and lexical diversity.
+- Engagement: weighted combination of energy, controlled pitch variation, filler score, repetition score, speech-rate score, pause timing, lexical diversity, and optional emotion-engagement score.
+- Multimodal scoring applies a small consistency penalty when strong acoustic delivery is paired with poor textual fluency or excessive pause ratio.
 
 The exact feature weights and band thresholds are defined in
 [app/scoring/scoring.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/scoring/scoring.py)

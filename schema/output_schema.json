@@ -60,7 +60,10 @@
     "disfluency_count": 0,
     "filler_rate_per_100w": 0.0,
     "repeat_rate": 0.0,
-    "readability_proxy": 0.0
+    "readability_proxy": 0.0,
+    "avg_clause_length": 0.0,
+    "estimated_clause_count": 0,
+    "lexical_diversity": 0.0
   },
   "feedback": {
     "summary": "string",

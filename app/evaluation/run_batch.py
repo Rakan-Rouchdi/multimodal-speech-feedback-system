@@ -59,6 +59,7 @@ def flatten_result(file_path: Path, result: Dict) -> Dict:
         # A few key metrics (optional but useful)
         "speech_rate_wpm": speech.get("speech_rate_wpm"),
         "mean_pause_sec": speech.get("mean_pause_sec"),
+        "pause_ratio": speech.get("pause_ratio"),
         "pitch_std_hz": speech.get("pitch_std_hz"),
         "energy_mean": speech.get("energy_mean"),
 
@@ -66,6 +67,9 @@ def flatten_result(file_path: Path, result: Dict) -> Dict:
         "filler_rate_per_100w": text.get("filler_rate_per_100w"),
         "repeat_rate": text.get("repeat_rate"),
         "readability_proxy": text.get("readability_proxy"),
+        "avg_clause_length": text.get("avg_clause_length"),
+        "estimated_clause_count": text.get("estimated_clause_count"),
+        "lexical_diversity": text.get("lexical_diversity"),
         "filler_count": text.get("filler_count"),
         "disfluency_count": text.get("disfluency_count"),
         "raw_word_count": text.get("raw_word_count"),

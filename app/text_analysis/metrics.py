@@ -7,6 +7,7 @@ from app.contracts.constants import DISFLUENCY_MARKERS, FILLER_WORDS
 _WORD_RE = re.compile(r"[a-zA-Z0-9']+")
 _BRACKET_TOKEN_RE = re.compile(r"\[([A-Z]+)\]")
 _CLAUSE_SPLIT_RE = re.compile(r"[.!?,;:]+|\n+")
+_MAX_ASR_CLAUSE_WORDS = 20
 
 
 def normalise_text(text: str) -> str:
@@ -94,22 +95,54 @@ def repetition_rate(text: str) -> float:
     return repeated_pairs / valid_pairs
 
 
+def clause_lengths(text: str, max_words: int = _MAX_ASR_CLAUSE_WORDS) -> List[int]:
+    """
+    Return punctuation-aware, ASR-safe clause lengths.
+
+    CrisperWhisper punctuation is often sparse, so a whole paragraph can arrive
+    as one "sentence". Very long punctuation chunks are therefore split into
+    fixed word windows. This keeps readability features from being dominated by
+    missing full stops.
+    """
+    rough_clauses = [c.strip() for c in _CLAUSE_SPLIT_RE.split(text) if c.strip()]
+    lengths: List[int] = []
+
+    for clause in rough_clauses:
+        words = tokens(clause)
+        if not words:
+            continue
+        if len(words) <= max_words:
+            lengths.append(len(words))
+            continue
+
+        for start in range(0, len(words), max_words):
+            lengths.append(len(words[start:start + max_words]))
+
+    return lengths
+
+
 def avg_clause_length(text: str) -> float:
     """
-    Use clause-like chunks rather than full sentence boundaries only.
-    This works better for ASR transcripts, which often contain commas but
-    weak or inconsistent full-stop punctuation.
+    Average length of punctuation-aware, ASR-safe spoken chunks.
     """
-    clauses = [c.strip() for c in _CLAUSE_SPLIT_RE.split(text) if c.strip()]
-    if not clauses:
-        return 0.0
-
-    lengths = [count_words(c) for c in clauses]
-    lengths = [n for n in lengths if n > 0]
+    lengths = clause_lengths(text)
     if not lengths:
         return 0.0
 
     return sum(lengths) / len(lengths)
+
+
+def lexical_diversity(text: str) -> float:
+    """
+    Ratio of unique words to total words.
+
+    This is a simple proxy for vocabulary variety. It is intentionally kept
+    lightweight because transcripts are short and ASR punctuation is imperfect.
+    """
+    ws = tokens(text)
+    if not ws:
+        return 0.0
+    return len(set(ws)) / len(ws)
 
 
 def _score_from_range(value: float, ideal_min: float, ideal_max: float, hard_min: float, hard_max: float) -> float:
@@ -176,4 +209,7 @@ def compute_text_metrics(transcript: str, clean_text: Optional[str] = None) -> D
         "filler_rate_per_100w": filler_rate_per_100w(transcript, wc_clean),
         "repeat_rate": repetition_rate(clean_text),
         "readability_proxy": readability_proxy(clean_text),
+        "avg_clause_length": avg_clause_length(clean_text),
+        "estimated_clause_count": len(clause_lengths(clean_text)),
+        "lexical_diversity": lexical_diversity(clean_text),
     }

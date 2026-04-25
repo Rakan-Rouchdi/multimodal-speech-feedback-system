@@ -8,31 +8,36 @@ from app.contracts.constants import BANDS
 # These weights are part of the dissertation-facing scoring design.
 # Keeping them as named constants makes the formulas easier to cite and review.
 CONFIDENCE_WEIGHTS = {
-    "filler_score": 0.35,
+    "filler_score": 0.30,
     "repeat_score": 0.25,
-    "energy_score": 0.15,
+    "energy_score": 0.12,
     "pitch_var_score": 0.05,
-    "mean_pause_score": 0.10,
-    "wpm_score": 0.10,
+    "mean_pause_score": 0.08,
+    "wpm_score": 0.08,
+    "pause_ratio_score": 0.07,
+    "lexical_diversity_score": 0.05,
     "emotion_confidence_score": 0.10,
 }
 
 CLARITY_WEIGHTS = {
-    "filler_score": 0.40,
+    "filler_score": 0.35,
     "repeat_score": 0.25,
-    "energy_score": 0.15,
-    "readability_score": 0.05,
-    "mean_pause_score": 0.10,
+    "energy_score": 0.12,
+    "pause_ratio_score": 0.08,
+    "mean_pause_score": 0.08,
     "wpm_score": 0.05,
+    "lexical_diversity_score": 0.07,
 }
 
 ENGAGEMENT_WEIGHTS = {
-    "energy_score": 0.25,
-    "pitch_var_score": 0.15,
+    "energy_score": 0.20,
+    "pitch_var_score": 0.10,
     "filler_score": 0.25,
     "repeat_score": 0.20,
-    "wpm_score": 0.10,
-    "mean_pause_score": 0.05,
+    "wpm_score": 0.08,
+    "mean_pause_score": 0.04,
+    "pause_ratio_score": 0.08,
+    "lexical_diversity_score": 0.05,
     "emotion_engagement_score": 0.10,
 }
 
@@ -74,6 +79,18 @@ def score_lower_better(value: float, ideal_max: float, hard_max: float) -> float
     if value >= hard_max:
         return 0.0
     return 100.0 * (hard_max - value) / (hard_max - ideal_max)
+
+
+def score_higher_better(value: float, hard_min: float, ideal_min: float) -> float:
+    """
+    0–100 score where higher values are better.
+    At or above ideal_min => 100, at/below hard_min => 0.
+    """
+    if value >= ideal_min:
+        return 100.0
+    if value <= hard_min:
+        return 0.0
+    return 100.0 * (value - hard_min) / (ideal_min - hard_min)
 
 
 def coverage_adjusted_score(
@@ -174,7 +191,7 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
 
     filler = float(text.get("filler_rate_per_100w", 0.0)) if text_available else None
     repeat = float(text.get("repeat_rate", 0.0)) if text_available else None
-    readability = float(text.get("readability_proxy", 0.0)) if text_available else None
+    lexical_diversity = float(text.get("lexical_diversity", 0.0)) if text_available else None
 
     pitch_std = float(speech.get("pitch_std_hz", 0.0)) if speech_available else None
     mean_pause = float(speech.get("mean_pause_sec", 0.0)) if speech_available else None
@@ -192,10 +209,13 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
 
     filler_score = score_lower_better(filler, ideal_max=1.0, hard_max=6.0) if filler is not None else None
 
-    # assumes adjacent repetition rate from improved text metrics
-    repeat_score = score_lower_better(repeat, ideal_max=0.03, hard_max=0.25) if repeat is not None else None
+    # Adjacent repetitions are rare, so small increases are meaningful.
+    repeat_score = score_lower_better(repeat, ideal_max=0.003, hard_max=0.035) if repeat is not None else None
 
-    readability_score = clamp_0_100(readability) if readability is not None else None
+    lexical_diversity_score = (
+        score_higher_better(lexical_diversity, hard_min=0.50, ideal_min=0.75)
+        if lexical_diversity is not None else None
+    )
 
     pitch_var_score = (
         score_from_range(pitch_std, ideal_min=10, ideal_max=25, hard_min=3, hard_max=65)
@@ -203,7 +223,7 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
     )
 
     mean_pause_score = (
-        score_from_range(mean_pause, ideal_min=0.12, ideal_max=0.40, hard_min=0.05, hard_max=1.20)
+        score_from_range(mean_pause, ideal_min=0.12, ideal_max=0.45, hard_min=0.05, hard_max=1.20)
         if mean_pause is not None else None
     )
 
@@ -213,7 +233,7 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
     )
 
     pause_ratio_score = (
-        score_lower_better(pause_ratio, ideal_max=0.18, hard_max=0.50)
+        score_lower_better(pause_ratio, ideal_max=0.07, hard_max=0.16)
         if pause_ratio is not None else None
     )
 
@@ -235,6 +255,8 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
         (CONFIDENCE_WEIGHTS["pitch_var_score"], pitch_var_score),
         (CONFIDENCE_WEIGHTS["mean_pause_score"], mean_pause_score),
         (CONFIDENCE_WEIGHTS["wpm_score"], wpm_score),
+        (CONFIDENCE_WEIGHTS["pause_ratio_score"], pause_ratio_score),
+        (CONFIDENCE_WEIGHTS["lexical_diversity_score"], lexical_diversity_score),
     ]
     if emotion_confidence_score is not None:
         confidence_items.append(
@@ -244,12 +266,13 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
 
     # CLARITY: text-led (0.70T 0.30S)
     clarity = coverage_adjusted_score([
-        (CLARITY_WEIGHTS["readability_score"], readability_score),
         (CLARITY_WEIGHTS["filler_score"], filler_score),
         (CLARITY_WEIGHTS["repeat_score"], repeat_score),
         (CLARITY_WEIGHTS["energy_score"], energy_score),
+        (CLARITY_WEIGHTS["pause_ratio_score"], pause_ratio_score),
         (CLARITY_WEIGHTS["mean_pause_score"], mean_pause_score),
         (CLARITY_WEIGHTS["wpm_score"], wpm_score),
+        (CLARITY_WEIGHTS["lexical_diversity_score"], lexical_diversity_score),
     ])
 
     # ENGAGEMENT: speech-led (0.85S 0.15T/shared)
@@ -260,6 +283,8 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
         (ENGAGEMENT_WEIGHTS["repeat_score"], repeat_score),
         (ENGAGEMENT_WEIGHTS["wpm_score"], wpm_score),
         (ENGAGEMENT_WEIGHTS["mean_pause_score"], mean_pause_score),
+        (ENGAGEMENT_WEIGHTS["pause_ratio_score"], pause_ratio_score),
+        (ENGAGEMENT_WEIGHTS["lexical_diversity_score"], lexical_diversity_score),
     ]
     if emotion_engagement_score is not None:
         engagement_items.append(
@@ -276,10 +301,12 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
             fluency_penalty += 100.0 - filler_score
         if repeat_score is not None:
             fluency_penalty += 3.0 * (100.0 - repeat_score)
+        if pause_ratio_score is not None:
+            fluency_penalty += 100.0 - pause_ratio_score
 
-        confidence -= 0.03 * fluency_penalty
-        clarity -= 0.04 * fluency_penalty
-        engagement -= 0.05 * fluency_penalty
+        confidence -= 0.02 * fluency_penalty
+        clarity -= 0.03 * fluency_penalty
+        engagement -= 0.04 * fluency_penalty
 
     confidence = clamp_0_100(confidence)
     clarity = clamp_0_100(clarity)
@@ -300,7 +327,7 @@ def scoring(speech: Dict, text: Dict, use_emotion: bool = True) -> Dict:
             "wpm_score": round_or_zero(wpm_score),
             "filler_score": round_or_zero(filler_score),
             "repeat_score": round_or_zero(repeat_score),
-            "readability_score": round_or_zero(readability_score),
+            "lexical_diversity_score": round_or_zero(lexical_diversity_score),
             "pitch_var_score": round_or_zero(pitch_var_score),
             "mean_pause_score": round_or_zero(mean_pause_score),
             "pause_rate_score": round_or_zero(pause_rate_score),

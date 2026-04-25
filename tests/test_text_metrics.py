@@ -1,4 +1,5 @@
 from app.text_analysis.metrics import (
+    avg_clause_length,
     compute_text_metrics,
     count_fillers,
     count_words,
@@ -38,3 +39,11 @@ def test_compute_text_metrics_exposes_raw_and_clean_transcripts():
     assert metrics["transcript"] == "hello"
     assert metrics["raw_transcript"] == "Um hello"
     assert metrics["clean_transcript"] == "hello"
+    assert metrics["avg_clause_length"] == 1.0
+    assert metrics["estimated_clause_count"] == 1
+    assert metrics["lexical_diversity"] == 1.0
+
+
+def test_avg_clause_length_is_not_broken_by_missing_full_stops():
+    text = " ".join(f"word{i}" for i in range(45))
+    assert avg_clause_length(text) == 15.0
