@@ -1,106 +1,252 @@
 # Emotion Model Implementation Notes
 
-This note documents the auxiliary emotion model exactly as evidenced in the codebase and notebook outputs.
+This document records only details confirmed from the repository.
 
-## Primary sources inspected
-- [app/emotion/predictor.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/emotion/predictor.py)
-- [app/VoiceModel/Training.ipynb](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/VoiceModel/Training.ipynb)
-- [app/VoiceModel/best_model.h5](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/VoiceModel/best_model.h5)
+## Runtime Files
 
-## Purpose
-The emotion model is optional. It produces an emotion distribution from audio and can be incorporated into the multimodal scoring stage when `--use_emotion` is enabled.
+- `app/emotion/predictor.py`
+- `app/VoiceModel/best_model.h5`
+- `app/VoiceModel/Training.ipynb`
+- `tests/test_emotion_features.py`
 
-## Dataset used
-- RAVDESS speech emotion audio dataset stored under [app/VoiceModel/Audio](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/VoiceModel/Audio)
-- Eight emotion labels are used:
-  - angry
-  - calm
-  - disgust
-  - fearful
-  - happy
-  - neutral
-  - sad
-  - surprised
+## Runtime Status
 
-## Input features
-The model operates on frame-level acoustic features, not raw waveform samples.
+The emotion model is optional. It runs only when:
 
-Feature stack evidenced in [app/emotion/predictor.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/emotion/predictor.py):
-- 13 MFCC coefficients
-- 13 delta coefficients
-- 13 delta-delta coefficients
+```bash
+--use_emotion
+```
+
+is passed and the selected variant is `speech_only` or `multimodal`.
+
+In current `outputs/main_eval` JSON files, `emotion_output` is `null` because the batch was run without `--use_emotion`.
+
+## Labels
+
+Confirmed runtime label order in `app/emotion/predictor.py`:
+
+```python
+EMOTION_LABELS = [
+    "angry", "calm", "disgust", "fearful",
+    "happy", "neutral", "sad", "surprised",
+]
+```
+
+Notebook emotion mapping:
+
+```python
+emotion_map = {
+    "01": "neutral", "02": "calm", "03": "happy", "04": "sad",
+    "05": "angry", "06": "fearful", "07": "disgust", "08": "surprised"
+}
+```
+
+## Dataset
+
+Confirmed from notebook:
+
+```python
+DATASET_PATH = "Audio"
+```
+
+The repository contains actor-folder WAV files under `app/VoiceModel/Audio/Actor_*`.
+
+Needs confirmation:
+
+- Formal dataset name/citation. The filename pattern and labels are consistent with RAVDESS-style data, but the notebook does not explicitly write the dataset citation.
+
+## Input Features
+
+Confirmed in `app/emotion/predictor.py::extract_features` and `app/VoiceModel/Training.ipynb`:
+
+- 13 MFCCs
+- 13 delta MFCCs
+- 13 delta-delta MFCCs
 - 1 zero-crossing-rate feature
 - 12 chroma features
-- 1 RMS energy feature
+- 1 RMS/RMSE energy feature
 
-Total input dimensionality: `53` features per frame.
+Total feature dimension:
 
-Time dimension:
-- each sample is padded or truncated to `250` time steps
-- final model input shape is `(250, 53)`
+```text
+13 + 13 + 13 + 1 + 12 + 1 = 53
+```
 
-## Data split and augmentation
-Evidence from notebook cells in [app/VoiceModel/Training.ipynb](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/VoiceModel/Training.ipynb):
-- original samples are extracted first
-- split is stratified by emotion label
-- first split: train/validation pool vs test with `test_size=0.1`
-- second split: train vs validation with `test_size=0.1111`
+Runtime shape:
 
-Logged tensor shapes:
-- training set after augmentation: `(5765, 250, 53)`
-- validation set: `(144, 250, 53)`
-- test set: `(144, 250, 53)`
+```text
+(250, 53)
+```
 
-Training augmentation is applied only to the training partition. The notebook includes:
-- additive noise
-- time stretching
-- time shifting
-- pitch shifting
+Model input shape after batch expansion:
 
-## Model architecture
-Evidence from model definition cells in [app/VoiceModel/Training.ipynb](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/VoiceModel/Training.ipynb):
+```text
+(1, 250, 53)
+```
 
-1. `Conv1D(64, kernel_size=5, activation="relu", kernel_regularizer=l2(0.001))`
-2. `BatchNormalization()`
-3. `MaxPooling1D()`
-4. `Dropout(0.3)`
-5. `Conv1D(128, kernel_size=3, activation="relu", kernel_regularizer=l2(0.001))`
-6. `BatchNormalization()`
-7. `MaxPooling1D()`
-8. `Dropout(0.3)`
-9. `Bidirectional(LSTM(64, return_sequences=False, kernel_regularizer=l2(0.001)))`
-10. `Dropout(0.4)`
-11. `Dense(128, activation="relu", kernel_regularizer=l2(0.001))`
-12. `Dropout(0.3)`
-13. `Dense(num_classes, activation="softmax")`
+Test evidence:
 
-Summary description: CNN + Bidirectional LSTM classifier.
+```python
+tests/test_emotion_features.py::test_emotion_feature_extraction_returns_model_shape
+```
 
-## Optimiser, loss, and training setup
-Documented in the notebook:
-- optimiser: `adam`
-- loss function: `categorical_crossentropy`
-- metric: `accuracy`
-- batch size: `32`
-- epochs requested: `50`
+## Train/Validation/Test Split
+
+Notebook output confirms:
+
+```text
+Train: (5765, 250, 53) (5765, 8)
+Val  : (144, 250, 53) (144, 8)
+Test : (144, 250, 53) (144, 8)
+```
+
+Notebook code confirms:
+
+```python
+train_test_split(..., test_size=0.1, stratify=y_encoded, random_state=SEED)
+train_test_split(..., test_size=0.1111, stratify=np.argmax(y_train_val, axis=1), random_state=SEED)
+```
+
+Training set is augmented after splitting.
+
+## Data Augmentation
+
+Training notebook defines:
+
+- `noise(data)`
+- `stretch(data, rate=0.85)`
+- `shift(data)`
+- `pitch(data, sr, pitch_factor=0.7)`
+
+Needs confirmation:
+
+- Exact number of augmentations per original sample should be cited from notebook code if included in Chapter 3. The final augmented training shape is confirmed.
+
+## Architecture
+
+Confirmed from `app/VoiceModel/Training.ipynb`:
+
+```python
+model = Sequential([
+    Conv1D(64, 5, activation='relu', input_shape=input_shape, kernel_regularizer=l2(0.001)),
+    BatchNormalization(),
+    MaxPooling1D(2),
+    Dropout(0.3),
+
+    Conv1D(128, 3, activation='relu', kernel_regularizer=l2(0.001)),
+    BatchNormalization(),
+    MaxPooling1D(2),
+    Dropout(0.3),
+
+    Bidirectional(LSTM(64, return_sequences=False, kernel_regularizer=l2(0.001))),
+    Dropout(0.4),
+
+    Dense(128, activation='relu', kernel_regularizer=l2(0.001)),
+    Dropout(0.3),
+
+    Dense(y_train_cat.shape[1], activation='softmax')
+])
+```
+
+## Optimiser, Loss, Batch Size, Epochs
+
+Confirmed:
+
+```python
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+history = model.fit(..., epochs=50, batch_size=32, callbacks=[early_stop, checkpoint])
+```
 
 Callbacks:
-- `EarlyStopping(monitor="val_loss", patience=10, restore_best_weights=True)`
-- `ModelCheckpoint("best_model.h5", monitor="val_accuracy", save_best_only=True, verbose=1)`
 
-## Saved model path
-- training checkpoint filename in notebook: `best_model.h5`
-- repository model path used at runtime: [app/VoiceModel/best_model.h5](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/VoiceModel/best_model.h5)
+```python
+EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True, verbose=1)
+ModelCheckpoint("best_model.h5", monitor='val_accuracy', save_best_only=True, verbose=1)
+```
 
-## Final metrics evidenced
-Best validation checkpoint explicitly logged in the notebook:
-- `Epoch 26: val_accuracy improved from 0.77083 to 0.81944, saving model to best_model.h5`
+Needs confirmation:
 
-Reported held-out test result from the notebook output:
-- test accuracy: `0.806` on `144` test samples
+- Learning rate is not explicitly written in the notebook. If citing a value, either confirm Keras default Adam learning rate for the installed version or state that the default Adam settings were used.
 
-## Values that should not be guessed
-The following values were not explicitly set in the inspected notebook cells and therefore should not be claimed as fixed implementation details:
-- explicit learning rate value for Adam
-- full confusion-matrix summary in dissertation prose unless copied directly from a saved notebook output
-- claim that the current on-disk `best_model.h5` definitely came from one exact notebook run unless that provenance is separately verified
+## Saved Model Path
+
+Notebook checkpoint filename:
+
+```text
+best_model.h5
+```
+
+Runtime path:
+
+```python
+MODEL_PATH = Path(__file__).resolve().parent.parent / "VoiceModel" / "best_model.h5"
+```
+
+Resolved repository path:
+
+```text
+app/VoiceModel/best_model.h5
+```
+
+Needs confirmation:
+
+- The repository does not prove cryptographically that the current `app/VoiceModel/best_model.h5` is exactly the checkpoint from the logged notebook run.
+
+## Metrics Confirmed From Notebook Output
+
+Best validation checkpoint line:
+
+```text
+Epoch 26: val_accuracy improved from 0.77083 to 0.81944, saving model to best_model.h5
+```
+
+Early stopping:
+
+```text
+Epoch 36: early stopping
+Restoring model weights from the end of the best epoch: 26.
+```
+
+Test classification report:
+
+```text
+accuracy 0.806 on 144 test samples
+macro avg f1-score 0.806
+weighted avg f1-score 0.804
+```
+
+## Runtime Prediction Output
+
+`predict_emotion(file_path)` returns:
+
+```python
+{
+    "top_label": top_label,
+    "probabilities": {label: probability}
+}
+```
+
+If feature extraction fails, it returns `neutral` with uniform probabilities.
+
+## How Emotion Affects Scoring
+
+In `app/scoring/scoring.py`, emotion probabilities are mapped to confidence and engagement subscores via `EMOTION_SCORE_MAP`. Emotion affects:
+
+- confidence, if `emotion_confidence_score` is available
+- engagement, if `emotion_engagement_score` is available
+
+Emotion does not directly affect clarity in the current code.
+
+## How Emotion Affects Feedback
+
+`app/feedback/generator.py` adds emotion-aware feedback when `speech["emotion"]` contains a recognised `top_label`.
+
+## Testing
+
+Automated tests do not load the full Keras model. `tests/test_emotion_features.py` validates feature extraction shape `(250, 53)`.
+
+## Figure Notes
+
+- Figure 3.2 model architecture: use the layer list above.
+- Figure 3.3 loss curve: generated at `docs/figures/figure_3_3_loss_curve.png` from notebook epoch logs.
+- Figure 3.4 accuracy curve: generated at `docs/figures/figure_3_4_accuracy_curve.png` from notebook epoch logs.

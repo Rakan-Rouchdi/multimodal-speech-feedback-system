@@ -11,6 +11,7 @@ __pycache__/
 # Output files
 outputs/
 data/
+docs/
 
 # Model weight files (large binary checkpoints — ignore unless explicitly needed)
 *.pt

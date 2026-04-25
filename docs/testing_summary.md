@@ -1,79 +1,83 @@
 # Testing Summary
 
-## How to run the tests
+## How to Run
 
 ```bash
 pytest -v
 ```
 
-## Test files and what they validate
-- [tests/test_audio_preprocessing.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_audio_preprocessing.py)
-  - verifies the preprocessing pipeline returns waveform, sample rate, and duration for a valid WAV input
+Last audited result:
 
-- [tests/test_speech_metrics.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_speech_metrics.py)
-  - verifies the acoustic module handles silent and very short audio without crashing
+```text
+29 passed, 1 skipped
+```
 
-- [tests/test_text_metrics.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_text_metrics.py)
-  - verifies filler detection
-  - verifies repetition-rate behaviour on adjacent repeated words
-  - verifies empty transcript handling
+The skipped test is the optional real CrisperWhisper integration test, which requires:
 
-- [tests/test_scoring.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_scoring.py)
-  - verifies scoring outputs remain in the `0-100` range
-  - verifies score band mapping
+```bash
+RUN_CRISPERWHISPER_INTEGRATION=1 pytest -v tests/test_crisper_whisper.py
+```
 
-- [tests/test_scoring_bands.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_scoring_bands.py)
-  - verifies the band boundaries at the threshold values
+## Test Files
 
-- [tests/test_feedback_generation.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_feedback_generation.py)
-  - verifies low-clarity performance produces clarity-oriented feedback
+| Test file | Type | What it validates |
+|---|---|---|
+| `tests/test_audio_preprocessing.py` | Unit | Audio preprocessing returns waveform, sample rate, and duration. |
+| `tests/test_speech_metrics.py` | Unit/edge | Silent and very short audio do not crash acoustic metrics. |
+| `tests/test_speech_rate.py` | Unit | WPM formula. |
+| `tests/test_text_metrics.py` | Unit/edge | Filler detection, filler rate, repetition rate, empty transcript handling, raw/clean transcript fields, ASR-safe clause splitting. |
+| `tests/test_scoring.py` | Unit | Scores remain in `0-100`; banding categories. |
+| `tests/test_scoring_bands.py` | Unit | Band boundary behaviour. |
+| `tests/test_feedback_generation.py` | Unit | Low clarity triggers clarity feedback. |
+| `tests/test_pipeline_runner.py` | Integration | Variants, invalid variant errors, logging fields, score presence, transcription cache use, JSON save. |
+| `tests/test_transcription_cache.py` | Unit/integration | Cache write/hit, timestamp validation, implausible cache rejection, cleaning refresh. |
+| `tests/test_crisper_whisper.py` | Unit/integration optional | Cleaning, adapter shape, word timestamps, fallback without VAD, optional real model run. |
+| `tests/test_emotion_features.py` | Unit | Emotion feature extraction returns `(250, 53)`. |
 
-- [tests/test_speech_rate.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_speech_rate.py)
-  - verifies the words-per-minute calculation
+## Unit Tests
 
-- [tests/test_pipeline_runner.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_pipeline_runner.py)
-  - verifies `speech_only`, `text_only`, and `multimodal` variants enable the expected modules
-  - verifies invalid variants fail with a clear error
-  - verifies pipeline results contain required scores, logging fields, and JSON save support
-  - includes an integration-style test for a pipeline run on a synthetic local WAV fixture
-  - verifies text-enabled variants call the CrisperWhisper transcriber directly by default
-  - verifies the optional CrisperWhisper transcription cache can be enabled safely
+Unit tests cover deterministic functions such as:
 
-- [tests/test_crisper_whisper.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_crisper_whisper.py)
-  - verifies CrisperWhisper transcript cleaning
-  - verifies segment and word timestamp extraction from the faster-whisper response shape
-  - includes an optional real-model integration test for [data/test.wav](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/data/test.wav)
+- text counting and repetition metrics
+- score banding
+- speech rate calculation
+- audio preprocessing output shape
+- emotion feature extraction shape
 
-- [tests/test_transcription_cache.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_transcription_cache.py)
-  - verifies cached CrisperWhisper transcriptions are reused after a first run
-  - verifies incomplete cache entries without word timestamps are rejected and refreshed
+## Integration Tests
 
-- [tests/test_emotion_features.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_emotion_features.py)
-  - verifies auxiliary emotion feature extraction returns the trained model input shape
+`tests/test_pipeline_runner.py::test_integration_pipeline_json_save` runs the pipeline with a stubbed transcriber and saves JSON.
 
-## Test categories
+`tests/test_crisper_whisper.py::test_real_crisperwhisper_pipeline_on_test_wav_without_cache` is an optional real-model integration test and is skipped unless the environment variable is set.
 
-### Unit tests
-- preprocessing
-- text metrics
-- speech metrics
-- scoring
-- feedback generation
-- speech-rate helper
+## Edge Case Tests
 
-### Integration tests
-- the integration-marked test in [tests/test_pipeline_runner.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_pipeline_runner.py) runs the pipeline on a small synthetic WAV file and verifies result structure and JSON output saving
-- the optional integration test in [tests/test_crisper_whisper.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/tests/test_crisper_whisper.py) runs the real faster CrisperWhisper model on [data/test.wav](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/data/test.wav)
+Implemented edge cases include:
 
-### Edge-case tests
 - empty transcript
 - silent audio
 - very short audio
 - invalid pipeline variant
+- missing word timestamps in cache
+- implausibly short cached transcription for long audio
+- missing punctuation in transcript clause metrics
 
-## Known limitations
-- Normal `pytest -v` stubs the heavy model object for speed and determinism, while still asserting that the pipeline calls the CrisperWhisper interface directly by default.
-- The transcription cache is an optional runtime optimisation. It is enabled explicitly for single-file runs and enabled by default for batch evaluation, where repeated runs are expensive.
-- To run the real CrisperWhisper integration test, use `RUN_CRISPERWHISPER_INTEGRATION=1 pytest -v tests/test_crisper_whisper.py`.
-- The optional CNN-BiLSTM emotion model is not exercised in full during automated tests because model loading is comparatively heavy; the pipeline test uses a stubbed emotion output when needed.
-- Acoustic metrics on synthetic WAV fixtures confirm robustness and output structure, but they should not be cited as evidence of real-world model quality.
+## Cache Tests
+
+`tests/test_transcription_cache.py` proves:
+
+- cache writes and subsequent hits
+- invalid cache entries without word timestamps are rejected
+- implausibly short long-audio cache entries are rejected
+- old cleaning versions can be refreshed without retranscription
+
+## Emotion Tests
+
+The test suite validates feature extraction shape only. It does not run `app/VoiceModel/best_model.h5` during normal tests.
+
+## Known Limitations
+
+- The real CrisperWhisper model is not run by default in CI/local tests because it is slow and requires model availability.
+- Full Keras emotion inference is not tested automatically.
+- Tests validate robustness and deterministic behaviour, but not human perceptual correctness.
+- Scoring formula generalisation requires additional held-out human-scored data.

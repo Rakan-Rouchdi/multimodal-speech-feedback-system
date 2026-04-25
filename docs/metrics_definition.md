@@ -1,9 +1,9 @@
 # Metrics and scoring definitions
 
-## Headline scores (0–100)
-- ConfidenceScore (0–100)
-- ClarityScore (0–100)
-- EngagementScore (0–100)
+## Headline scores (0-100)
+- ConfidenceScore (0-100)
+- ClarityScore (0-100)
+- EngagementScore (0-100)
 
 These scores are produced in [app/scoring/scoring.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/scoring/scoring.py).
 The implementation uses weighted evidence from the available modalities and
@@ -11,10 +11,10 @@ shrinks partial-modality scores toward a neutral midpoint rather than
 over-rewarding missing evidence.
 
 ## Bands
-- 0–39: Needs improvement
-- 40–69: Developing
-- 70–84: Strong
-- 85–100: Excellent
+- 0-39: Needs improvement
+- 40-69: Developing
+- 70-84: Strong
+- 85-100: Excellent
 
 ## Speech metrics (units)
 - speech_rate_wpm: words per minute
@@ -52,7 +52,7 @@ The exact feature weights and band thresholds are defined in
 and [app/contracts/constants.py](/Users/rakanrouchdi/Desktop/speech-feedback-dissertation/app/contracts/constants.py).
 
 ## Output contract
-The system returns a JSON object that conforms to schema/output_schema.json.
+The system returns a JSON object that matches the representative contract in schema/output_schema.json.
 Fields may be null depending on pipeline variant:
 - speech_only: text_metrics may be null
 - text_only: speech_metrics may be null
