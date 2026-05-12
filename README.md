@@ -25,11 +25,11 @@ The implemented pipeline supports:
 
 The system can run in three modes:
 
-| Variant | Acoustic metrics | Transcription/text metrics | Optional emotion | Use case |
-|---|---:|---:|---:|---|
-| `speech_only` | Yes | No | Yes | Acoustic-only ablation |
-| `text_only` | No | Yes | No | Linguistic-only ablation |
-| `multimodal` | Yes | Yes | Yes | Full system |
+| Variant         | Acoustic metrics | Transcription/text metrics | Optional emotion | Use case                 |
+| --------------- | ---------------: | -------------------------: | ---------------: | ------------------------ |
+| `speech_only` |              Yes |                         No |              Yes | Acoustic-only ablation   |
+| `text_only`   |               No |                        Yes |               No | Linguistic-only ablation |
+| `multimodal`  |              Yes |                        Yes |              Yes | Full system              |
 
 ## Quick Start
 
@@ -143,68 +143,3 @@ The skipped test is the optional real CrisperWhisper integration test. To run it
 ```bash
 RUN_CRISPERWHISPER_INTEGRATION=1 pytest -v tests/test_crisper_whisper.py
 ```
-
-## Repository Structure
-
-```text
-app/
-  audio/              audio loading, normalisation, silence trimming
-  speech_analysis/    acoustic metrics and speech rate
-  transcription/      CrisperWhisper adapter, result types, transcription cache
-  text_analysis/      linguistic metrics
-  emotion/            optional CNN-BiLSTM emotion predictor
-  scoring/            confidence, clarity, engagement scoring
-  feedback/           deterministic feedback generation
-  output/             JSON result building and saving
-  pipeline/           pipeline runner
-  evaluation/         batch evaluation utilities
-
-data/                 local audio files
-docs/                 dissertation evidence and implementation notes
-docs/figures/         generated Chapter 3 figures
-outputs/              generated JSON, CSV, cache, and evaluation outputs
-schema/               representative output schema
-scripts/              evaluation/helper scripts
-tests/                PyTest suite
-```
-
-## Dissertation Documentation
-
-Key Chapter 3 evidence files:
-
-- `docs/chapter3_system_architecture.md`
-- `docs/chapter3_codebase_evidence.md`
-- `docs/scoring_formulas_and_thresholds.md`
-- `docs/acoustic_processing_implementation.md`
-- `docs/linguistic_processing_implementation.md`
-- `docs/caching_implementation.md`
-- `docs/emotion_model_implementation_notes.md`
-- `docs/system_io_and_output_schema.md`
-- `docs/testing_summary.md`
-- `docs/chapter3_test_case_table.md`
-- `docs/performance_and_latency.md`
-- `docs/implementation_challenges_and_solutions.md`
-- `docs/chapter3_drafting_notes.md`
-- `docs/consistency_audit.md`
-
-Chapter 2 update notes:
-
-```text
-docs/chapter2_update_notes.md
-```
-
-Generated Chapter 3 figures:
-
-- `docs/figures/figure_3_1_system_architecture.png`
-- `docs/figures/figure_3_3_loss_curve.png`
-- `docs/figures/figure_3_4_accuracy_curve.png`
-- `docs/figures/figure_3_5_sample_scores.png`
-- `docs/figures/figure_3_6_latency_breakdown.png`
-
-## Important Limitations
-
-- The confidence, clarity, and engagement formulas are interpretable heuristics, not objectively correct psychological measures.
-- Scoring thresholds were refined using the available human-scored evaluation set, so generalisation to unseen speakers requires a separate held-out validation set.
-- Emotion inference is optional and is not included in current `main_eval` outputs unless the batch is rerun with `--use_emotion`.
-- CrisperWhisper punctuation is not treated as fully reliable; text metrics use ASR-safe chunking for readability-style features.
-- The output schema is a representative contract, not a formally enforced JSON Schema validator.
