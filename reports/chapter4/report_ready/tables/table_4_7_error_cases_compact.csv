@@ -1,0 +1,4 @@
+case,participant_id,dimension,variant,absolute_error,likely_cause
+1,S01_T1,Confidence,Text-only,44.6,high filler/disfluency rate may dominate text score
+2,S04_T1,Clarity,Speech-only,44.0,speech-only variant lacks linguistic content evidence
+3,S02_T2,Engagement,Speech-only,40.6,heuristic score differs from human reference

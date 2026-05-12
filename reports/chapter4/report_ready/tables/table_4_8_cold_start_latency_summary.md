@@ -1,0 +1,5 @@
+| variant | n_recordings | mean_audio_duration_sec | mean_preprocessing_sec | mean_acoustic_extraction_sec | mean_transcription_sec | mean_text_analysis_sec | mean_scoring_sec | mean_feedback_generation_sec | mean_total_runtime_sec | median_total_runtime_sec | mean_real_time_factor | median_real_time_factor | one_time_transcriber_model_load_sec | transcriber_reused_in_process | transcription_result_cache |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Speech-only | 20 | 52.72 | 0.368 | 4.244 | 0 | 0 | 0.0001 | 0.0001 | 4.613 | 3.996 | 0.086 | 0.079 | 4.028 | True | disabled |
+| Text-only | 20 | 52.72 | 0.025 | 0 | 130.986 | 0 | 0.0001 | 0.0001 | 131.012 | 124.54 | 2.601 | 2.168 | 4.028 | True | disabled |
+| Multimodal | 20 | 52.72 | 0.028 | 4.133 | 142.328 | 0 | 0.0001 | 0.0001 | 146.49 | 129.211 | 2.974 | 2.318 | 4.028 | True | disabled |

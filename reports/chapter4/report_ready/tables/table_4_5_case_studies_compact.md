@@ -1,0 +1,4 @@
+| case | participant_id | human_scores | multimodal_scores | key_evidence | interpretation |
+| --- | --- | --- | --- | --- | --- |
+| Strong Speaker | S07_T1 | 100.0 / 100.0 / 95.0 | 92.6 / 91.5 / 92.4 | WPM: 151; pause ratio: 0.0719; fillers/100w: 0; repeat rate: 0.00909; pitch std: 24.5 | Highest human reference average, with closeness to multimodal scores used as tie-breaker. |
+| Weak / Mixed Speaker | S01_T1 | 95.0 / 80.0 / 90.0 | 63.4 / 56.5 / 66.1 | WPM: 171; pause ratio: 0.0795; fillers/100w: 11.6; repeat rate: 0; pitch std: 17.9 | Largest mean absolute difference between multimodal system scores and human reference scores. |

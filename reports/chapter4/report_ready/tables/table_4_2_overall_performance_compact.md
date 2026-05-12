@@ -1,0 +1,11 @@
+| dimension | variant | MAE | Pearson r | Spearman rho |
+| --- | --- | --- | --- | --- |
+| Confidence | Speech-only | 21.21 | 0.294 | 0.28 |
+| Confidence | Text-only | 16.18 | 0.649 | 0.725 |
+| Confidence | Multimodal | 14.22 | 0.707 | 0.742 |
+| Clarity | Speech-only | 18.6 | -0.006 | 0.057 |
+| Clarity | Text-only | 14.12 | 0.69 | 0.728 |
+| Clarity | Multimodal | 13.7 | 0.694 | 0.715 |
+| Engagement | Speech-only | 17.7 | 0.417 | 0.403 |
+| Engagement | Text-only | 19.16 | 0.45 | 0.466 |
+| Engagement | Multimodal | 17.22 | 0.546 | 0.584 |

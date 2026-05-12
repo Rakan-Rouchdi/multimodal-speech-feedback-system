@@ -1,0 +1,5 @@
+| number_of_recordings | number_of_speakers | number_of_raters | human_rating_scale | scaled_score_range | number_of_variants | dimension | mean_rater_std | cronbach_alpha | interpretation |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 20 | 10 | 5 | 1-5 | 0-100 | 3 | Confidence | 6.09 | 0.983 | high agreement |
+| 20 | 10 | 5 | 1-5 | 0-100 | 3 | Clarity | 5.84 | 0.973 | high agreement |
+| 20 | 10 | 5 | 1-5 | 0-100 | 3 | Engagement | 7.71 | 0.973 | high agreement |

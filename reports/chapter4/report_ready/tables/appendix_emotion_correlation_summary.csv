@@ -1,0 +1,25 @@
+emotion_probability,human_dimension,n_recordings,pearson_r,pearson_p,spearman_rho,spearman_p,interpretation_note
+angry,confidence,20,0.0819,0.7313,-0.332,0.1527,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+angry,clarity,20,0.0129,0.9568,-0.3137,0.178,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+angry,engagement,20,0.1108,0.642,-0.0757,0.7512,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+calm,confidence,20,0.1487,0.5316,-0.0843,0.7238,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+calm,clarity,20,0.1945,0.4113,-0.0289,0.9038,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+calm,engagement,20,-0.0335,0.8886,-0.0953,0.6893,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+disgust,confidence,20,-0.5296,0.0163,-0.483,0.031,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+disgust,clarity,20,-0.4857,0.0299,-0.3412,0.1409,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+disgust,engagement,20,-0.3502,0.1301,-0.3084,0.1859,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+fearful,confidence,20,-0.0214,0.9285,-0.1616,0.496,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+fearful,clarity,20,-0.0324,0.8922,-0.1945,0.4112,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+fearful,engagement,20,-0.13,0.5849,-0.0731,0.7594,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+happy,confidence,20,0.0984,0.6799,0.0304,0.8988,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+happy,clarity,20,0.1064,0.6552,-0.0175,0.9417,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+happy,engagement,20,0.191,0.4199,0.1619,0.4952,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+neutral,confidence,20,-0.2609,0.2666,-0.5798,0.0074,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+neutral,clarity,20,-0.3309,0.1541,-0.6083,0.0044,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+neutral,engagement,20,-0.0635,0.7902,-0.2687,0.2519,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+sad,confidence,20,-0.0256,0.9147,-0.3331,0.1513,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+sad,clarity,20,-0.0348,0.8843,-0.4008,0.0799,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+sad,engagement,20,-0.1785,0.4514,-0.2545,0.2788,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+surprised,confidence,20,-0.294,0.2083,-0.3237,0.1639,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+surprised,clarity,20,-0.3556,0.1239,-0.3733,0.1049,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
+surprised,engagement,20,-0.1222,0.6079,-0.1237,0.6033,Exploratory association only; RAVDESS emotion labels are not equivalent to Chapter 4 scoring dimensions.
